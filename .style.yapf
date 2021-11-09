@@ -1,0 +1,8 @@
+[style]
+
+################### COMMON #################################
+
+# Which predefined style this style is based on.
+based_on_style = pep8
+
+column_limit = 110

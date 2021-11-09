@@ -1,0 +1,26 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+jupyter = "*"
+jupyter-contrib-nbextensions = "*"
+pandas = "*"
+tqdm = "*"
+openpyxl = "*"
+yapf = "*"
+pgeocode = "*"
+pexpect = "*"
+nltk = "*"
+matplotlib = "*"
+scipy = "*"
+missingno = "*"
+xgboost = "*"
+scikit-learn = "*"
+shap = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"
