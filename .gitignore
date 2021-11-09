@@ -1,0 +1,7 @@
+data/temp*
+data/*.pkl.bz2
+data/*.pkl.zip
+data/**/*.xlsx
+cross_val
+grid_search
+thresholds/thresholds
