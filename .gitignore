@@ -5,3 +5,5 @@ data/**/*.xlsx
 cross_val
 grid_search
 thresholds/thresholds
+
+poetry.lock
