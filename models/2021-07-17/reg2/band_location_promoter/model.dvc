@@ -1,0 +1,4 @@
+outs:
+- md5: 63af6ffaac445c42d2f6d55205d5dcfe
+  size: 132
+  path: model

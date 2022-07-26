@@ -1,0 +1,4 @@
+[core]
+    remote = origin
+['remote "origin"']
+    url = gs://intellizenz-dev-4866-data/dvc
