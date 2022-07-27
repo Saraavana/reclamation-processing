@@ -19,6 +19,7 @@ seaborn = "^0.11.2"
 rake-nltk = "^1.0.6"
 spacy = "^3.4"
 # Can not install "shap" on ubuntu, is uses a depreacte llvm compiler (9.0.x - 10.0.x). llvm is only available from version 11.0.x
+geocoder = "^1.38.1"
 
 [tool.poetry.dev-dependencies]
 jupyter = "^1.0.0"
