@@ -1,2 +1,4 @@
 /export_features_2016_2020_v1.parquet.gzip
 /export_features_2016_2020_v2.parquet.gzip
+/export_band_stats_for_range_of_vginkasso_2016_2020.parquet.gzip
+/export_promotor_stats_for_range_of_vginkasso_2016_2020.parquet.gzip
