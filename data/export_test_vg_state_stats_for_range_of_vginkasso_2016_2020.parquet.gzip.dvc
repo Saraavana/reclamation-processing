@@ -1,0 +1,4 @@
+outs:
+- md5: efc53de9390fb74a93d2b3d1ce7eb990
+  size: 14020883
+  path: export_test_vg_state_stats_for_range_of_vginkasso_2016_2020.parquet.gzip
