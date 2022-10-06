@@ -38,18 +38,21 @@ def Readdataset(dataset_path_, dataset_name, standalize, val = False):
     X_df_test = df_test.loc[:,~df_test.columns.isin(['veranst_segment','vg_inkasso'])] # 152 features 
     y_df_test = df_test['veranst_segment']
 
-    X_train_numpy_array = X_df_train.to_numpy()
-    X_test_numpy_array = X_df_test.to_numpy()
+    Xtrain = X_df_train.to_numpy()
+    Xtest = X_df_test.to_numpy()
 
-    y_train_numpy_array = y_df_train.to_numpy()
-    y_test_numpy_array = y_df_test.to_numpy()
+    ytrain = y_df_train.to_numpy()
+    ytest = y_df_test.to_numpy()
+
+    print(ytrain[1393791])
+    print(len(Xtrain[1393791]))
 
 
-    Xtrain = np.load(X_train_numpy_array)
-    Xtest = np.load(X_test_numpy_array)
-    
-    ytrain = np.load(y_train_numpy_array)
-    ytest = np.load(y_test_numpy_array)
+    print("\nX Train Data shape:\n", Xtrain.shape)
+    print("\nX Test Data shape:\n", Xtest.shape)
+    print("\nY Train Data shape:\n", ytrain.shape)
+    print("\nY Test Data shape:\n", ytest.shape)
+
 
     # Xtrain = np.load(data_path + dataset_name + 'Xtrain.npy')
     # Xtest = np.load(data_path + dataset_name + 'Xtest.npy')
