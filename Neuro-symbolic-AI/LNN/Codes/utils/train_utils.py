@@ -46,6 +46,10 @@ def Build_tree(Xtrain, Xval, ytrain_raw, yval_raw, Epoch, classnum, \
     Tree = Givevaltonode(Tree, pronodenum, list(range(len(yval_raw))))
     Modelnum = 7
     while pronodenum <= maxnodenum:
+        
+        print('The pronodenum: ',pronodenum)
+        print('The maxnodenum: ',maxnodenum)
+
         if not Tree[pronodenum].stoptrain:
             Tree, trueidx, falseidx, trueidxt, falseidxt \
                 = Trainnode(Tree, pronodenum, Epoch,\
@@ -101,7 +105,6 @@ def Trainnode(Nodes, pronum, Epoch, lrt, X, y, Mdlnum, mdlpath, clsnum, Xv, yv):
     for mdli in range(1, Mdlnum):
         tlnn = eval('TL_NN' + str(mdli) + '(T)')
         tlnn = tlnn.to(device)
-        print('TLNN is: ',tlnn)
         optimizer = torch.optim.AdamW(tlnn.parameters(), lr = lrt)
         print('Model number :{} and Epochs :{}'.format(mdli,Epoch))
         for epoch in range(Epoch):        
@@ -258,11 +261,8 @@ def Cptgininode(yori, clsn):
 def Update_gini(ginismin, ginibest, Nodes, tlnn, \
                               curclasses, num, mdlpath, pronum):
     fsd = mdlpath + 'bestmodel.pkl'
-    # print('Gini min :',ginismin)
-    # print('Gini best :',ginibest)
     if ginismin < ginibest:
         torch.save(tlnn, mdlpath + 'bestmodel.pkl')
-        print('Model saved at: ',fsd)
         Nodes[pronum].ginis = ginismin
         ginibest = ginismin - 0
         Nodes[pronum].bstmdlclass = int(curclasses[num])

@@ -14,6 +14,8 @@ from utils.Models import *
 from utils.train import * 
 from utils.data import *
     
+import json
+
 setup_seed(20)
 
 def main():
@@ -33,7 +35,8 @@ def main():
         Tree = train_model(did, dataset_name_, dname, epochs=Max_epoch, \
                     normalize_timeseries=normalize_dataset)
             
-        
+        with open('tree.json', 'w') as fp:
+            json.dump(Tree, fp)
     
     
 

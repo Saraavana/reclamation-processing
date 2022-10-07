@@ -33,9 +33,17 @@ def Readdataset(dataset_path_, dataset_name, standalize, val = False):
     df_test = pd.read_parquet(data_path + 'export_testing_features_2016_2020.parquet.gzip')
 
     # Allow only maximum of 2 NaN per row or remove the rows with more than 2 NaN values Eg: band_std = NaN and promoter_std = NaN
-    df_train.dropna(axis=0, thresh=154, inplace=True)
-    df_test.dropna(axis=0, thresh=154, inplace=True) 
+    df_train.dropna(axis=0, thresh=152, inplace=True)
+    df_test.dropna(axis=0, thresh=152, inplace=True) 
 
+    # Set NaN values to 0.0 in 'promoter_std', 'band_std', 'vg_state_std' columns
+    df_train['promoter_std'] = np.where((df_train.promoter_std.isna()),0.0,df_train.promoter_std)
+    df_train['band_std'] = np.where((df_train.band_std.isna()),0.0,df_train.band_std)
+    df_train['vg_state_std'] = np.where((df_train.vg_state_std.isna()),0.0,df_train.vg_state_std)
+
+    df_test['promoter_std'] = np.where((df_test.promoter_std.isna()),0.0,df_test.promoter_std)
+    df_test['band_std'] = np.where((df_test.band_std.isna()),0.0,df_test.band_std)
+    df_test['vg_state_std'] = np.where((df_test.vg_state_std.isna()),0.0,df_test.vg_state_std)
 
     X_df_train = df_train.loc[:,~df_train.columns.isin(['veranst_segment','vg_inkasso'])] # 152 features
     y_df_train = df_train['veranst_segment']
