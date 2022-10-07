@@ -32,24 +32,29 @@ def Readdataset(dataset_path_, dataset_name, standalize, val = False):
     df_train = pd.read_parquet(data_path + 'export_training_features_2016_2020.parquet.gzip')
     df_test = pd.read_parquet(data_path + 'export_testing_features_2016_2020.parquet.gzip')
 
+    # Allow only maximum of 2 NaN per row or remove the rows with more than 2 NaN values Eg: band_std = NaN and promoter_std = NaN
+    df_train.dropna(axis=0, thresh=154, inplace=True)
+    df_test.dropna(axis=0, thresh=154, inplace=True) 
+
+
     X_df_train = df_train.loc[:,~df_train.columns.isin(['veranst_segment','vg_inkasso'])] # 152 features
     y_df_train = df_train['veranst_segment']
 
     X_df_test = df_test.loc[:,~df_test.columns.isin(['veranst_segment','vg_inkasso'])] # 152 features 
     y_df_test = df_test['veranst_segment']
 
-    X_train_numpy_array = X_df_train.to_numpy()
-    X_test_numpy_array = X_df_test.to_numpy()
+    Xtrain = X_df_train.to_numpy()
+    Xtest = X_df_test.to_numpy()
 
-    y_train_numpy_array = y_df_train.to_numpy()
-    y_test_numpy_array = y_df_test.to_numpy()
+    ytrain = y_df_train.to_numpy()
+    ytest = y_df_test.to_numpy()
 
 
-    Xtrain = np.load(X_train_numpy_array)
-    Xtest = np.load(X_test_numpy_array)
-    
-    ytrain = np.load(y_train_numpy_array)
-    ytest = np.load(y_test_numpy_array)
+    print("\nX Train Data shape:\n", Xtrain.shape)
+    print("\nX Test Data shape:\n", Xtest.shape)
+    print("\nY Train Data shape:\n", ytrain.shape)
+    print("\nY Test Data shape:\n", ytest.shape)
+
 
     # Xtrain = np.load(data_path + dataset_name + 'Xtrain.npy')
     # Xtest = np.load(data_path + dataset_name + 'Xtest.npy')
@@ -57,6 +62,12 @@ def Readdataset(dataset_path_, dataset_name, standalize, val = False):
     # ytrain = np.load(data_path + dataset_name + 'ytrain.npy')
     # ytest = np.load(data_path + dataset_name + 'ytest.npy')
     
+    Xtrain = Xtrain[0:70]
+    ytrain = ytrain[0:70]
+
+    Xtest = Xtest[0:30]
+    ytest = ytest[0:30]
+
     Xtrain, ytrain = Shuffle(Xtrain, ytrain)
     Xtest, ytest = Shuffle(Xtest, ytest)
     

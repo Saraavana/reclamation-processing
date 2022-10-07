@@ -77,6 +77,7 @@ class TL_NN1(nn.Module):
 class TL_NN2(nn.Module):
     def __init__(self, T):
         super(TL_NN2,self).__init__()
+        print('==========================================================')
         self.t1 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
         self.t1_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
         self.t2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)

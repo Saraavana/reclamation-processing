@@ -32,7 +32,8 @@ def train_model(did, dataset_path_, dname, epochs = 100, \
     classnum = int(np.max(ytrain_raw) + 1)
     
     Tree = Build_tree(Xtrain, Xval, ytrain_raw, yval_raw, epochs, classnum, \
-                   learnrate = lr, savepath = './utils/')
+                   learnrate = lr, savepath = 'C:/Saravana/Projects/Intellizenz/intellizenz-model-training/Neuro-symbolic-AI/LNN/Codes/utils/')
+                   
     
     return Tree
       
