@@ -32,6 +32,11 @@ def Readdataset(dataset_path_, dataset_name, standalize, val = False):
     df_train = pd.read_parquet(data_path + 'export_training_features_2016_2020.parquet.gzip')
     df_test = pd.read_parquet(data_path + 'export_testing_features_2016_2020.parquet.gzip')
 
+    # Allow only maximum of 2 NaN per row or remove the rows with more than 2 NaN values Eg: band_std = NaN and promoter_std = NaN
+    df_train.dropna(axis=0, thresh=154, inplace=True)
+    df_test.dropna(axis=0, thresh=154, inplace=True) 
+
+
     X_df_train = df_train.loc[:,~df_train.columns.isin(['veranst_segment','vg_inkasso'])] # 152 features
     y_df_train = df_train['veranst_segment']
 
@@ -43,9 +48,6 @@ def Readdataset(dataset_path_, dataset_name, standalize, val = False):
 
     ytrain = y_df_train.to_numpy()
     ytest = y_df_test.to_numpy()
-
-    print(ytrain[1393791])
-    print(len(Xtrain[1393791]))
 
 
     print("\nX Train Data shape:\n", Xtrain.shape)
@@ -60,6 +62,12 @@ def Readdataset(dataset_path_, dataset_name, standalize, val = False):
     # ytrain = np.load(data_path + dataset_name + 'ytrain.npy')
     # ytest = np.load(data_path + dataset_name + 'ytest.npy')
     
+    Xtrain = Xtrain[0:70]
+    ytrain = ytrain[0:70]
+
+    Xtest = Xtest[0:30]
+    ytest = ytest[0:30]
+
     Xtrain, ytrain = Shuffle(Xtrain, ytrain)
     Xtest, ytest = Shuffle(Xtest, ytest)
     
