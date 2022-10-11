@@ -1,74 +1,66 @@
+import torch
+from torch.utils.data import Dataset
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 
+class Intellizenz(Dataset):
+    def __init__(self, path):
+        self.path = path
 
 
-def getDataset():
-    # 1. Load the data 
-    df_train = pd.read_parquet('C:/Saravana/Projects/Intellizenz/intellizenz-model-training/data/export_training_features_2016_2020.parquet.gzip')
-    df_test = pd.read_parquet('C:/Saravana/Projects/Intellizenz/intellizenz-model-training/data/export_testing_features_2016_2020.parquet.gzip')
-  
-    #get the categorical data: 'vg_datum_year'
+        # 1. Load the data 
+        data_df = pd.read_parquet(path)
 
-    # 2. Load the data and split accordingly
-    train = pd.read_csv(data_file)
-    target = ' <=50K'
-    if "Set" not in train.columns:
-        indices_file = Path(os.getcwd()+'/data/indices')
-        indices_file.parent.mkdir(parents=True, exist_ok=True)
-        indices = []
-        if indices_file.exists():
-            print("File already exists. Load the indices...")
-            indices = np.load(indices_file)
-        else:    
-            print("Pick the indeces at random and save these as the file for the future usage.")
-            indices = np.random.choice(["train", "valid", "test"], p =[.8, .1, .1], size=(train.shape[0],))
-            np.save(indices_file, indices)
-        train["Set"] = indices
-    train_indices = train[train.Set=="train"].index
-    valid_indices = train[train.Set=="valid"].index
-    test_indices = train[train.Set=="test"].index
-    
-    # 3. Label encode categorical features and fill empty cells.
-    nunique = train.nunique()
-    types = train.dtypes
-    categorical_columns = []
-    categorical_dims =  {}
-    for col in train.columns:
-        if types[col] == 'object' or nunique[col] < 200:
-            print(col, train[col].nunique())
-            l_enc = LabelEncoder()
-            train[col] = train[col].fillna("VV_likely")
-            train[col] = l_enc.fit_transform(train[col].values)
-            categorical_columns.append(col)
-            categorical_dims[col] = len(l_enc.classes_)
-        else:
-            train.fillna(train.loc[train_indices, col].mean(), inplace=True)
-    
-    # 4. Define categorical features for categorical embeddings
-    unused_feat = ['Set']
-    features = [ col for col in train.columns if col not in unused_feat+[target]] 
-    cat_idxs = [ i for i, f in enumerate(features) if f in categorical_columns]
-    cat_dims = [ categorical_dims[f] for i, f in enumerate(features) if f in categorical_columns]
-    
-    # 5. Define the data subsets.
-    X_train = train[features].values[train_indices]
-    y_train = train[target].values[train_indices]
-    X_test = train[features].values[test_indices]
-    y_test = train[target].values[test_indices]
-    X_valid = train[features].values[valid_indices]
-    y_valid = train[target].values[valid_indices]
-    
-    #6. Return everything
-    return cat_idxs, cat_dims, X_train, y_train, X_test, y_test, X_valid, y_valid
+        sfdfs = ['vg_state_count', 'vg_state_mean', 
+        'vg_state_std', 'vg_state_min', 'vg_state_5%', 	
+        'vg_state_10%', 'vg_state_15%', 'vg_state_20%', 'vg_state_25%', 'vg_state_30%', 	
+        'vg_state_35%', 'vg_state_40%', 'vg_state_45%', 'vg_state_50%', 'vg_state_55%', 	
+        'vg_state_60%', 'vg_state_65%', 'vg_state_70%', 'vg_state_75%', 'vg_state_80%', 	
+        'vg_state_85%', 'vg_state_90%', 'vg_state_95%', 'vg_state_max', 	
+        'band_count', 'band_mean', 'band_std', 'band_min', 'band_5%', 'band_10%', 'band_15%',	
+        'band_20%', 'band_25%', 'band_30%', 'band_35%', 'band_40%', 'band_45%', 'band_50%', 
+        'band_55%', 'band_60%', 'band_65%', 'band_70%', 'band_75%', 'band_80%', 'band_85%', 	
+        'band_90%', 'band_95%', 'band_max', 
+        'promoter_count', 'promoter_mean', 'promoter_std', 'promoter_min', 'promoter_5%', 
+        'promoter_10%', 'promoter_15%', 'promoter_20%', 'promoter_25%', 'promoter_30%', 
+        'promoter_35%', 'promoter_40%', 'promoter_45%', 'promoter_50%', 'promoter_55%', 
+        'promoter_60%', 'promoter_65%', 'promoter_70%', 'promoter_75%', 'promoter_80%', 
+        'promoter_85%', 'promoter_90%', 'promoter_95%', 
+        #'promoter_max', 
+        # 'place_kirche', 'place_hotel', 'place_cafe', 'place_theater', 'place_club', 'place_halle', 
+        # 'place_gaststaette', 'place_festhalle', 'place_kulturzentrum', 'place_festzelt', 'place_schloss', 
+        # 'place_pub', 'place_stadthalle', 'place_park', 'place_gasthof', 'place_kabarett', 'place_arena', 
+        # 'place_schlachthof', 'place_wandelhalle', 'place_turnhalle', 'place_buergerhaus', 'place_museum', 
+        # 'place_rathaus', 'place_staatsbad', 'place_zelt', 'place_jazz', 'place_forum', 'place_gymnasium', 
+        # 'place_schule', 'place_sporthalle', 
+        # 'band_kurorchester bad wil', 'band_musikverein harmonie', 
+        # 'band_kasalla', 'band_cat ballou', 'band_roncalli royal orch', 'band_jugendblasorchester', 'band_kurorchester bad pyr', 
+        # 'band_hoehner', 'band_paveier', 'band_domstuermer', 
+        'band_kluengelkoepp', 'band_alleinunterhalter', 'band_the gregorian voices', 
+        'band_brings', 'band_musica hungarica', 'band_concerto', 'band_bad salzuflen orches', 'band_musikverein stadtkap', 'band_salonorchester hunga', 
+        'band_miljoe', 'band_raeuber', 'band_kabarett leipziger f', 'band_marita koellner', 'band_salon-orchester hung', 'band_blaeck foeoess', 
+        'band_schuelerinnen und sc', 'band_romain vicente', 'band_staatliche kurkapell', 'band_musikzug der freiwil', 'band_funky marys', 
+        'state_bavaria', 'state_rhineland-palatinate', 'state_baden-wuerttemberg', 'state_north rhine-westphalia', 
+        # 'state_thuringia', 'state_hesse', 'state_brandenburg', 'state_schleswig-holstein', 'state_berlin', 'state_mecklenburg-western pomerania', 
+        # 'state_lower saxony', 'state_hamburg', 'state_saarland', 'state_saxony-anhalt', 'state_saxony', 'state_bremen', 
+        #'vg_datum_year', 
+        'vg_datum_month', 'vg_datum_day_of_week', 'vg_datum_season', 'veranst_segment', 'vg_inkasso']
+
+        X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso'])] # 152 features
+        # X = data_df.loc[:,~data_df.columns.isin(sfdfs)] # 152 features
+        y = data_df['veranst_segment']
+
+        # Encode categorical labels
+        l_enc = LabelEncoder()
+        X['vg_datum_year'] = l_enc.fit_transform(X['vg_datum_year'])
+
+        y = l_enc.fit_transform(y)
 
 
+        self.X = torch.Tensor(X.values) #dimension: [n, 152]
+        self.y = torch.Tensor(y) #dimension: [n]
 
-class Intellizenz():
-    def __init__(self, X, y):
-        self.X = X
-        self.y = y
-    
     def __len__(self):
         return len(self.y)
 
@@ -78,39 +70,28 @@ class Intellizenz():
         return {'t1':dataTensor}, query
 
 
-# class COVTYPE(Dataset):
-#     def __init__(self, root, mode):
-        
-#         datasets.maybe_download_covtype()
+class Intellizenz_Data(Dataset):
+    def __init__(self, path):
+        self.path = path
 
-        
-#         self.root = root
-#         self.mode = mode
-#         assert os.path.exists(root), 'Path {} does not exist'.format(root)
+        # 1. Load the data 
+        data_df = pd.read_parquet(path)
 
-#         #load data from file
-#         data = np.loadtxt(root, delimiter=',')        
-        
-#         #normalize to be in [0,1]
-#         data[:,:-1] = (data[:,:-1] - data[:,:-1].min(0))/ (data[:,:-1].max(0)- data[:,:-1].min(0))
-#         data[:,-1] = data[:,-1] -1 #we want our class labels from 0-6 instead of 1-7 | Forest coverage type classes
-        
-#         if mode == 'train':
-#             self.X = torch.Tensor(data[indices[:460000],:-1])
-#             self.y = torch.Tensor(data[indices[:460000],-1])
-#             self.len= 460000
-#         else: 
-#             self.X = torch.Tensor(data[indices[460000:],:-1])
-#             self.y = torch.Tensor(data[indices[460000:],-1])          
-#             self.len = data.shape[0]-460000
-            
-#     def __getitem__(self, index):
-        
-#         dataTensor = self.X[index]
-#         query = ":- not forest(p1,{}). ".format(int(self.y[index]))
+        X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso'])] # 152 features
+        y = data_df['veranst_segment']
 
-#         return {'t1':dataTensor}, query
+        # Encode categorical labels
+        l_enc = LabelEncoder()
+        X['vg_datum_year'] = l_enc.fit_transform(X['vg_datum_year'])
+
+        y = l_enc.fit_transform(y)
+
+        self.X = torch.Tensor(X.values) #dimension: [n, 152]
+        self.y = torch.Tensor(y) #dimension: [n]
+                    
+    def __getitem__(self, index):
+        return self.X[index], int(self.y[index])
         
        
-#     def __len__(self):
-#         return self.len
+    def __len__(self):
+        return len(self.y)

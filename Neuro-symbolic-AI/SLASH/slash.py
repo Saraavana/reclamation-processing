@@ -23,7 +23,9 @@ from joblib import Parallel, delayed
 def pad_3d_tensor(target, framework, bs, ruleNum, max_classes):
 
     if framework == 'numpy':
-        padded = torch.tensor([np.hstack((np.asarray(row, dtype=np.float32),  [0] * (max_classes - len(row))) ) for batch in target for row in batch]).type(torch.FloatTensor).view(bs, ruleNum, max_classes)    
+        # padded = torch.tensor([np.hstack((np.asarray(row, dtype=np.float32),  [0] * (max_classes - len(row))) ) for batch in target for row in batch]).type(torch.FloatTensor).view(bs, ruleNum, max_classes)  
+        padded = torch.tensor(np.array([np.hstack((np.asarray(row, dtype=np.float32),  [0] * (max_classes - len(row))) ) for batch in target for row in batch])).type(torch.FloatTensor).view(bs, ruleNum, max_classes)    
+
 
     if framework == 'torch':
         padded = torch.stack([torch.hstack((row,  torch.tensor([0] * (max_classes - len(row)), device="cuda" ) ) ) for batch in target for row in batch ]).view(ruleNum, bs, max_classes)
@@ -532,7 +534,6 @@ class SLASH(object):
                     if m not in networkOutput:
                         networkOutput[m] = {}
 
-                    #print("M")
 
                     networkLLOutput[m] = {}
                     for o in self.networkOutputs[m]: #iterate over all output types and forwarded the input t trough the network
@@ -802,9 +803,8 @@ class SLASH(object):
             for data, target in testLoader:
 
                 # data = features[i]
-                # target = labels[i]                
+                # target = labels[i]               
                 output = self.networkMapping[network](data.to(self.device))
-                # print(len(self.n))
                 if len(self.n) != 0 and self.n[network] > 2 :
                     pred = output.argmax(dim=-1, keepdim=True) # get the index of the max log-probability
                     target = target.to(self.device).view_as(pred)
