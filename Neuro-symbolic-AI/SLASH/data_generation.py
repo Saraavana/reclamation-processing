@@ -55,6 +55,16 @@ class Intellizenz(Dataset):
         l_enc = LabelEncoder()
         X['vg_datum_year'] = l_enc.fit_transform(X['vg_datum_year'])
 
+        def fillmissing(df, feature):
+            df[feature] = df[feature].fillna(0)
+                
+
+        features_missing= X.columns[X.isna().any()]
+        for feature in features_missing:
+            fillmissing(X, feature= feature)
+        
+        X.info()
+        print('##########################################')
         y = l_enc.fit_transform(y)
 
 
