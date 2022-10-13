@@ -12,17 +12,17 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 class TL_NN1(nn.Module):
     def __init__(self, T):
         super(TL_NN1,self).__init__()
-        self.t1 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
+        self.t1 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True).to(device)
         self.t1_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
-        self.t2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
+        self.t2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True).to(device)
         self.t2_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
-        self.t3 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
+        self.t3 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True).to(device)
         self.t3_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
-        self.b1 = torch.nn.Parameter(torch.randn(1,T), requires_grad=True)
+        self.b1 = torch.nn.Parameter(torch.randn(1,T), requires_grad=True).to(device)
         self.b1_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
-        self.b2 = torch.nn.Parameter(torch.randn(1,T), requires_grad=True)
+        self.b2 = torch.nn.Parameter(torch.randn(1,T), requires_grad=True).to(device)
         self.b2_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
-        self.b3 = torch.nn.Parameter(torch.randn(1,T), requires_grad=True)
+        self.b3 = torch.nn.Parameter(torch.randn(1,T), requires_grad=True).to(device)
         self.b3_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
         self.A1 = torch.nn.Parameter(torch.rand(1,T),requires_grad=True)
         self.A2 = torch.nn.Parameter(torch.rand(1,T),requires_grad=True)
@@ -35,28 +35,28 @@ class TL_NN1(nn.Module):
 
 #        
     def forward(self,x1, x2, x3):
-         self.r_a1 = x1 * self.t1 - self.b1
+         self.r_a1 = x1.to(device) * self.t1 - self.b1
          self.r_asgm1 = torch.sigmoid(self.r_a1) # convert to 0-1 range
-         self.A_sm1 =  F.softmax(self.A1, dim = 1)
+         self.A_sm1 =  F.softmax(self.A1, dim = 1).to(device)
          self.weightbias1 = self.beta1 - torch.sum(self.A_sm1 * (1 - self.r_asgm1), 1)
          self.activate1 = clamp(self.weightbias1).reshape([-1,1])
          
          
-         self.r_a2 = x2 * self.t2 - self.b2
+         self.r_a2 = x2.to(device) * self.t2 - self.b2
          self.r_asgm2 = torch.sigmoid(self.r_a2) # convert to 0-1 range
-         self.A_sm2 =  F.softmax(self.A2, dim = 1)
+         self.A_sm2 =  F.softmax(self.A2, dim = 1).to(device)
          self.weightbias2 = self.beta2 - torch.sum(self.A_sm2 * (1 - self.r_asgm2), 1)
          self.activate2 = clamp(self.weightbias2).reshape([-1,1])
         
          
-         self.r_a3 = x3 * self.t3 - self.b3
+         self.r_a3 = x3.to(device) * self.t3 - self.b3
          self.r_asgm3 = torch.sigmoid(self.r_a3) # convert to 0-1 range
-         self.A_sm3 =  F.softmax(self.A3, dim = 1)
+         self.A_sm3 =  F.softmax(self.A3, dim = 1).to(device)
          self.weightbias3 = self.beta3 - torch.sum(self.A_sm3 * (1 - self.r_asgm3), 1)
          self.activate3 = clamp(self.weightbias3).reshape([-1,1])
         
          self.r_asgm4 = torch.cat((self.activate1, self.activate2, self.activate3),1)
-         self.A_sm4 = F.softmax(self.A4, dim = 1)
+         self.A_sm4 = F.softmax(self.A4, dim = 1).to(device)
          self.weightbias4 = self.beta4 - torch.sum(self.A_sm4 * (1 - self.r_asgm4), 1)
          self.activate4 = clamp(self.weightbias4).reshape([-1])
         
@@ -68,17 +68,17 @@ class TL_NN1(nn.Module):
 class TL_NN2(nn.Module):
     def __init__(self, T):
         super(TL_NN2,self).__init__()
-        self.t1 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
+        self.t1 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True).to(device)
         self.t1_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
-        self.t2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
+        self.t2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True).to(device)
         self.t2_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
-        self.t3 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
+        self.t3 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True).to(device)
         self.t3_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
-        self.b1 = torch.nn.Parameter(torch.randn(1,T), requires_grad=True)
+        self.b1 = torch.nn.Parameter(torch.randn(1,T), requires_grad=True).to(device)
         self.b1_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
-        self.b2 = torch.nn.Parameter(torch.randn(1,T), requires_grad=True)
+        self.b2 = torch.nn.Parameter(torch.randn(1,T), requires_grad=True).to(device)
         self.b2_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
-        self.b3 = torch.nn.Parameter(torch.randn(1,T), requires_grad=True)
+        self.b3 = torch.nn.Parameter(torch.randn(1,T), requires_grad=True).to(device)
         self.b3_2 = torch.nn.Parameter(1e-5*torch.randn(1,T), requires_grad=True)
         self.A1 = torch.nn.Parameter(torch.rand(1,T),requires_grad=True)
         self.A2 = torch.nn.Parameter(torch.rand(1,T),requires_grad=True)
@@ -93,29 +93,29 @@ class TL_NN2(nn.Module):
     def forward(self,x1, x2, x3):
          
          
-         self.r_a1 = x1 * self.t1 - self.b1
+         self.r_a1 = x1.to(device) * self.t1 - self.b1
          self.r_asgm1 = torch.sigmoid(self.r_a1) # convert to 0-1 range
-         self.A_sm1 =  F.softmax(self.A1, dim = 1)
+         self.A_sm1 =  F.softmax(self.A1, dim = 1).to(device)
          self.weightbias1 = 1-self.beta1 + torch.sum(self.A_sm1 * (self.r_asgm1), 1)
          self.activate1 = clamp(self.weightbias1).reshape([-1,1])
          
          
-         self.r_a2 = x2 * self.t2 - self.b2
+         self.r_a2 = x2.to(device) * self.t2 - self.b2
          self.r_asgm2 = torch.sigmoid(self.r_a2) # convert to 0-1 range
-         self.A_sm2 =  F.softmax(self.A2, dim = 1)
+         self.A_sm2 =  F.softmax(self.A2, dim = 1).to(device)
          self.weightbias2 = 1-self.beta2 + torch.sum(self.A_sm2 * (self.r_asgm2), 1)
          self.activate2 = clamp(self.weightbias2).reshape([-1,1])
            
          
-         self.r_a3 =  x3 * self.t3 - self.b3
+         self.r_a3 =  x3.to(device) * self.t3 - self.b3
          self.r_asgm3 = torch.sigmoid(self.r_a3) # convert to 0-1 range
-         self.A_sm3 =  F.softmax(self.A3, dim = 1)
+         self.A_sm3 =  F.softmax(self.A3, dim = 1).to(device)
          self.weightbias3 = 1-self.beta3 + torch.sum(self.A_sm3 * (self.r_asgm3), 1)
          self.activate3 = clamp(self.weightbias3).reshape([-1,1])
            
            
          self.r_asgm4 = torch.cat((self.activate1, self.activate2, self.activate3),1)
-         self.A_sm4 = F.softmax(self.A4, dim = 1)
+         self.A_sm4 = F.softmax(self.A4, dim = 1).to(device)
          self.weightbias4 = 1 - self.beta4 + torch.sum(self.A_sm4 * (self.r_asgm4), 1)
          self.activate4 = clamp(self.weightbias4).reshape([-1])
          
@@ -127,15 +127,15 @@ class TL_NN2(nn.Module):
 class TL_NN3(nn.Module):
     def __init__(self, T):
         super(TL_NN3,self).__init__()
-        self.t1 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
+        self.t1 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True).to(device)
         self.t1_2 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
-        self.t2 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
+        self.t2 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True).to(device)
         self.t2_2 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
-        self.t3 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
+        self.t3 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True).to(device)
         self.t3_2 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
-        self.b1 = torch.nn.Parameter(torch.randn(1,1), requires_grad=True)
-        self.b2 = torch.nn.Parameter(torch.randn(1,1), requires_grad=True)
-        self.b3 = torch.nn.Parameter(torch.randn(1,1), requires_grad=True)
+        self.b1 = torch.nn.Parameter(torch.randn(1,1), requires_grad=True).to(device)
+        self.b2 = torch.nn.Parameter(torch.randn(1,1), requires_grad=True).to(device)
+        self.b3 = torch.nn.Parameter(torch.randn(1,1), requires_grad=True).to(device)
         self.A1 = torch.nn.Parameter(torch.rand(1,T),requires_grad=True)
         self.A2 = torch.nn.Parameter(torch.rand(1,T),requires_grad=True)
         self.A3 = torch.nn.Parameter(torch.rand(1,T),requires_grad=True)
@@ -148,29 +148,29 @@ class TL_NN3(nn.Module):
     def forward(self,x1, x2, x3):
          
         
-        self.r_a1 = x1 * self.t1 - self.b1
+        self.r_a1 = x1.to(device) * self.t1 - self.b1
         self.r_asgm1 = torch.sigmoid(self.r_a1) # convert to 0-1 range
-        self.A_sm1 =  F.softmax(self.A1, dim = 1)
+        self.A_sm1 =  F.softmax(self.A1, dim = 1).to(device)
         self.weightbias1 = self.beta1 - torch.sum(self.A_sm1 * (1 - self.r_asgm1), 1)
         self.activate1 = clamp(self.weightbias1).reshape([-1,1])
                  
         
-        self.r_a2 = x2 * self.t2 - self.b2
+        self.r_a2 = x2.to(device) * self.t2 - self.b2
         self.r_asgm2 = torch.sigmoid(self.r_a2) # convert to 0-1 range
-        self.A_sm2 =  F.softmax(self.A2, dim = 1)
+        self.A_sm2 =  F.softmax(self.A2, dim = 1).to(device)
         self.weightbias2 = self.beta2 - torch.sum(self.A_sm2 * (1 - self.r_asgm2), 1)
         self.activate2 = clamp(self.weightbias2).reshape([-1,1])
            
         
-        self.r_a3 =  x3 * self.t3 - self.b3
+        self.r_a3 =  x3.to(device) * self.t3 - self.b3
         self.r_asgm3 = torch.sigmoid(self.r_a3) # convert to 0-1 range
-        self.A_sm3 =  F.softmax(self.A3, dim = 1)
+        self.A_sm3 =  F.softmax(self.A3, dim = 1).to(device)
         self.weightbias3 = self.beta3 - torch.sum(self.A_sm3 * (1 - self.r_asgm3), 1)
         self.activate3 = clamp(self.weightbias3).reshape([-1,1])
            
            
         self.r_asgm4 = torch.cat((self.activate1, self.activate2, self.activate3),1)
-        self.A_sm4 = F.softmax(self.A4, dim = 1)
+        self.A_sm4 = F.softmax(self.A4, dim = 1).to(device)
         self.weightbias4 = self.beta4 - torch.sum(self.A_sm4 * (1 - self.r_asgm4), 1)
         self.activate4 = clamp(self.weightbias4).reshape([-1])
         
@@ -183,18 +183,18 @@ class TL_NN3(nn.Module):
 class TL_NN4(nn.Module):
     def __init__(self, T):
         super(TL_NN4,self).__init__()
-        self.t1 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
+        self.t1 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True).to(device)
         self.t1_2 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
         self.t1_3 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
-        self.t2 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
+        self.t2 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True).to(device)
         self.t2_2 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
         self.t2_3 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
-        self.t3 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
+        self.t3 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True).to(device)
         self.t3_2 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
         self.t3_3 = torch.nn.Parameter(1e-5*torch.randn(1,1), requires_grad=True)
-        self.b1 = torch.nn.Parameter(torch.randn(1,1), requires_grad=True)
-        self.b2 = torch.nn.Parameter(torch.randn(1,1), requires_grad=True)
-        self.b3 = torch.nn.Parameter(torch.randn(1,1), requires_grad=True)
+        self.b1 = torch.nn.Parameter(torch.randn(1,1), requires_grad=True).to(device)
+        self.b2 = torch.nn.Parameter(torch.randn(1,1), requires_grad=True).to(device)
+        self.b3 = torch.nn.Parameter(torch.randn(1,1), requires_grad=True).to(device)
         self.A1 = torch.nn.Parameter(torch.rand(1,T),requires_grad=True)
         self.A2 = torch.nn.Parameter(torch.rand(1,T),requires_grad=True)
         self.A3 = torch.nn.Parameter(torch.rand(1,T),requires_grad=True)
@@ -207,28 +207,28 @@ class TL_NN4(nn.Module):
         
     def forward(self,x1, x2, x3):
         
-        self.r_a1 =  x1 * self.t1 - self.b1
+        self.r_a1 =  x1.to(device) * self.t1 - self.b1
         self.r_asgm1 = torch.sigmoid(self.r_a1) # convert to 0-1 range
-        self.A_sm1 =  F.softmax(self.A1, dim = 1)
+        self.A_sm1 =  F.softmax(self.A1, dim = 1).to(device)
         self.weightbias1 = 1-self.beta1 + torch.sum(self.A_sm1 * (self.r_asgm1), 1)
         self.activate1 = clamp(self.weightbias1).reshape([-1,1])
                  
         
-        self.r_a2 =  x2 * self.t2 - self.b2
+        self.r_a2 =  x2.to(device) * self.t2 - self.b2
         self.r_asgm2 = torch.sigmoid(self.r_a2) # convert to 0-1 range
-        self.A_sm2 =  F.softmax(self.A2, dim = 1)
+        self.A_sm2 =  F.softmax(self.A2, dim = 1).to(device)
         self.weightbias2 = 1-self.beta2 + torch.sum(self.A_sm2 * (self.r_asgm2), 1)
         self.activate2 = clamp(self.weightbias2).reshape([-1,1])
            
         
-        self.r_a3 = x3 * self.t3 - self.b3
+        self.r_a3 = x3.to(device) * self.t3 - self.b3
         self.r_asgm3 = torch.sigmoid(self.r_a3) # convert to 0-1 range
-        self.A_sm3 =  F.softmax(self.A3, dim = 1)
+        self.A_sm3 =  F.softmax(self.A3, dim = 1).to(device)
         self.weightbias3 = 1-self.beta3 + torch.sum(self.A_sm3 * (self.r_asgm3), 1)
         self.activate3 = clamp(self.weightbias3).reshape([-1,1])
            
         self.r_asgm4 = torch.cat((self.activate1, self.activate2, self.activate3),1)
-        self.A_sm4 = F.softmax(self.A4, dim = 1)
+        self.A_sm4 = F.softmax(self.A4, dim = 1).to(device)
         self.weightbias4 = 1-self.beta4 + torch.sum(self.A_sm4 * (self.r_asgm4), 1)
         self.activate4 = clamp(self.weightbias4).reshape([-1])
                  

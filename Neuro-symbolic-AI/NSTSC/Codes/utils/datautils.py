@@ -63,11 +63,11 @@ def Readdataset(dataset_path_, Dataset_name, standalize = True, val = False):
     # ytrain = np.load(data_path + dataset_name + 'ytrain.npy')
     # ytest = np.load(data_path + dataset_name + 'ytest.npy')
     
-    Xtrain = Xtrain[0:6]
-    ytrain = ytrain[0:6]
+    # Xtrain = Xtrain[0:2]
+    # ytrain = ytrain[0:2]
 
-    Xtest = Xtest[0:2]
-    ytest = ytest[0:2]
+    # Xtest = Xtest[0:1]
+    # ytest = ytest[0:1]
 
     Xtrain, ytrain = Shuffle(Xtrain, ytrain)
     Xtest, ytest = Shuffle(Xtest, ytest)

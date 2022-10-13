@@ -301,7 +301,7 @@ def Cptgininode(yori, clsn):
 # Accuracy for a node phase classifier
 def Cpt_Accuracy(mdl, X, y, T):
     Xpreds = mdl(X[:,:T], X[:,T:2*T], X[:,2*T:])
-    Xpredsnp = Xpreds.detach().numpy()
+    Xpredsnp = Xpreds.cpu().detach().numpy()
     Xpnprd = np.round(Xpredsnp)
     trueidx = np.where(Xpnprd == 1)[0]
     falseidx = np.where(Xpnprd == 0)[0]
