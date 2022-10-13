@@ -42,6 +42,6 @@ class Net_nn(nn.Module):
                 marg_mask.requires_grad_(False)
             x = torch.einsum('ijkl,ijkl->ijkl', x, marg_mask)
         # x = self.encoder(x)
-        x = x.view(-1, 152) #x shape: [1, n_features] 
+        x = x.view(-1, 80) #x shape: [1, n_features] 
         x = self.classifier(x)
         return x

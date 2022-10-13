@@ -61,7 +61,7 @@ def slash_intellizenz(exp_name, exp_dict):
     #     pd_height=9,
     #     pd_width=6)  
 
-    intellizenz_net = Net_nn(152) # 152 - number of features/columns
+    intellizenz_net = Net_nn(80) # 152 - number of features/columns
     
 
     #trainable params

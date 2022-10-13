@@ -695,10 +695,6 @@ class SLASH(object):
 
                 networkOutput_stacked = pad_3d_tensor(networkOutput_stacked, 'torch', len(query_batch),self.mvpp['networkPrRuleNum'],self.max_n)
 
-
-                print('network output stacked: ', networkOutput_stacked)
-                print('Gradient batch list: ', gradient_batch_list)
-
                 #multiply every probability with its gradient 
                 result = torch.einsum("bjc, jbc -> bjc", gradient_batch_list, networkOutput_stacked)
                 
@@ -720,7 +716,6 @@ class SLASH(object):
                 #get the mean over the sum of discrete properties
                 result_ll = result / sum_discrete_properties
 
-                print('ds Result NLL: ', result_ll)
 
                 #backward pass
                 #for EM we maximize the log likelihood
@@ -746,9 +741,6 @@ class SLASH(object):
                     #backward pass
                     result_nll.backward(retain_graph=True)
                     
-                    print('Result NLL: ', result_nll)
-                    print('Total loss: ', total_loss)
-
                     #apply gradients with each optimizer
                     for midx, m in enumerate(self.optimizers):
                         self.optimizers[m].step()
