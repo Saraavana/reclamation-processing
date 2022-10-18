@@ -27,6 +27,8 @@ clingo = "^5.6.1"
 tensorboard = "^2.10.1"
 networkx = "^2.8.7"
 torch = { version = "=1.12.1+cu113", source = "torch" }
+tensorflow = "^2.10.0"
+ltn = "^2.0"
 
 [[tool.poetry.source]]
 name = "torch"
