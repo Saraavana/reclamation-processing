@@ -10,3 +10,4 @@
 /export_train_vg_state_stats_for_range_of_vginkasso_2016_2020.parquet.gzip
 /export_training_features_2016_2020.parquet.gzip
 /export_testing_features_2016_2020.parquet.gzip
+/export_features_2016_2020_v3.parquet.gzip
