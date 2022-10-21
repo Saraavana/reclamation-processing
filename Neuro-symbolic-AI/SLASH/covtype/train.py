@@ -149,7 +149,7 @@ def slash_covtype(exp_name , exp_dict):
     if exp_dict['resume']:
         print("resuming experiment")
         saved_model = torch.load(saveModelPath)
-        
+
         #load pytorch models
         cov_net.load_state_dict(saved_model['cov_net'])
       
@@ -160,7 +160,7 @@ def slash_covtype(exp_name , exp_dict):
         #metrics
         train_acc_list = saved_model['train_acc_list']
         test_acc_list = saved_model['test_acc_list']        
-        
+
     train_dataset = COVTYPE(root='./Neuro-symbolic-AI/SLASH/covtype/data/covtype.data' , mode='train')
     # Return 4600 batches, where each batch contain 100 values. 
     # Each value contains two objects 0: {'t1':tensor of featuers for 100 data} and 1: corresponding queries for 100 data
@@ -170,7 +170,6 @@ def slash_covtype(exp_name , exp_dict):
     train_loader = torch.utils.data.DataLoader(FOREST_COVERAGE_TYPE(root='./Neuro-symbolic-AI/SLASH/covtype/data/covtype.data',mode='train'), batch_size=100, shuffle=True)
     test_loader = torch.utils.data.DataLoader(FOREST_COVERAGE_TYPE(root='./Neuro-symbolic-AI/SLASH/covtype/data/covtype.data',mode='test'), batch_size=100, shuffle=True)
    
-
     for e in range(start_e, exp_dict['epochs']):
         
         #TRAIN

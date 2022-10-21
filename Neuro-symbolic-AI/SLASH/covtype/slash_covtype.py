@@ -33,8 +33,8 @@ example_structure = {'exp_name':
 experiments = {'covtype_bt_20_5_bs_512_s_20_k_20': 
                    {'structure': 'binary-trees', 'num_repetitions': 20, 'depth': 5,
                     'num_sums':20, 'k':20,
-                    'lr': 0.01, 'bs':512, 'epochs':1, 'use_em':False,
-                    'start_date':date_string, 'resume':False, 'p_num':4, 'credentials':'DO',
+                    'lr': 0.01, 'bs':512, 'epochs':50, 'use_em':False,
+                    'start_date':date_string, 'resume':True, 'p_num':4, 'credentials':'DO',
               'explanation': """Covtype experiment using WMC for a simple classification."""}}
 
 
