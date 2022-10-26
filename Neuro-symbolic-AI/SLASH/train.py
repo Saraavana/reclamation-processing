@@ -15,6 +15,7 @@ from network_nn import Net_nn
 program ='''
 tab(t1).
 pred(p1).
+pred(p2). #--amount
 
 npp(vgsegment(1,T),[0,1,2]) :- tab(T).
 event(N,C) :- vgsegment(0,+T,-C), pred(N).
@@ -22,8 +23,15 @@ event(N,C) :- vgsegment(0,+T,-C), pred(N).
 '''
 
 # Query
-#:- not event(p1,1).
+# :- not event(p1,1).
+# Cardinality constraint, it is not the case, that the instance is not an event and it does not belong to class 1
 
+# :- event(p1,2).
+# :- event(p1,0).
+
+# Maybe, events with 3 parameters, with id, category, estimated cost of the event. 
+# constraint can be, it is not possible, 
+# :-not event(eventId=32,cat=1,cost>cost cat 1)
 
 def slash_intellizenz(exp_name, exp_dict):
     # Create RTPT object
