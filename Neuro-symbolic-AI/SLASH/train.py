@@ -10,7 +10,7 @@ import numpy as np
 import utils
 
 from einsum_wrapper import EiNet
-from network_nn import Net_nn
+from network_nn import Net_nn, Simple_nn
 
 from sklearn.metrics import confusion_matrix
 
@@ -54,7 +54,7 @@ def slash_intellizenz(exp_name, exp_dict):
         intellizenz_net = Net_nn(80) # 152 - number of features/columns
         slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt)
     else:
-        intellizenz_net = Net_nn(80)
+        intellizenz_net = Simple_nn(80).model
         simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt)
 
     

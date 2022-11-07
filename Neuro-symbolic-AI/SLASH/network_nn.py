@@ -45,3 +45,17 @@ class Net_nn(nn.Module):
         x = x.view(-1, 80) #x shape: [1, n_features] 
         x = self.classifier(x)
         return x
+
+class Simple_nn(nn.Module):
+    def __init__(self, n_features):
+        super(Simple_nn, self).__init__()
+        self.model =  nn.Sequential(
+                nn.Linear(n_features, 2048), # n_features = columns
+                nn.ReLU(),
+                nn.Linear(2048, 1024),
+                nn.ReLU(),
+                nn.Linear(1024, 84),
+                nn.ReLU(),
+                nn.Linear(84, 3),
+                nn.Softmax(1)
+            )

@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 import os, sys; 
-sys.path.append(os.path.dirname(os.path.realpath('intellizenz-model-training/Neuro-symbolic-AI')))
+sys.path.append(os.path.dirname(os.path.realpath('C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/column.py')))
 
 import column
 

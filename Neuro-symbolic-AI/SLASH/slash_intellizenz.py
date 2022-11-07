@@ -15,7 +15,7 @@ date_string = datetime.datetime.today().strftime('%d-%m-%Y')
 
 experiments = {'simple-nn': 
                    {'lr': 0.001, 'bs':64, 'epochs':200, 'use_em':False,
-                    'start_date':date_string, 'resume':True, 'p_num':6, 'credentials':'NN'}}
+                    'start_date':date_string, 'resume':False, 'p_num':6, 'credentials':'NN'}}
 
 # experiments = {'tabnet': 
 #                    {'lr': 0.001, 'bs':64, 'epochs':200, 'use_em':False,
