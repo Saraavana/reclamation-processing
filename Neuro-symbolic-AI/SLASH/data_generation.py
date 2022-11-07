@@ -2,8 +2,11 @@ import torch
 from torch.utils.data import Dataset
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
-import column
 
+import os, sys; 
+sys.path.append(os.path.dirname(os.path.realpath('intellizenz-model-training/Neuro-symbolic-AI')))
+
+import column
 
 class Intellizenz(Dataset):
     def __init__(self, path):

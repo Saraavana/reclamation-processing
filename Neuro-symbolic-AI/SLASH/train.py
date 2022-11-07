@@ -12,6 +12,8 @@ import utils
 from einsum_wrapper import EiNet
 from network_nn import Net_nn
 
+from sklearn.metrics import confusion_matrix
+
 program ='''
 tab(t1).
 pred(p1).
@@ -52,7 +54,7 @@ def slash_intellizenz(exp_name, exp_dict):
         intellizenz_net = Net_nn(80) # 152 - number of features/columns
         slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt)
     else:
-        intellizenz_net = Net_nn(150)
+        intellizenz_net = Net_nn(80)
         simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt)
 
     
@@ -245,8 +247,8 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt):
         time_test = time.time()
 
         #test accuracy
-        train_acc, _, = SLASHobj.testNetwork('vgsegment', train_loader, ret_confusion=False)
-        test_acc, _, = SLASHobj.testNetwork('vgsegment', test_loader, ret_confusion=False)
+        train_acc, _, = testNetwork(intellizenz_net, train_loader, ret_confusion=False)
+        test_acc, _, = testNetwork(intellizenz_net, test_loader, ret_confusion=False)
 
         print("Test Accuracy:",test_acc)
         print("Train Accuracy:",train_acc)
@@ -277,3 +279,55 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt):
         
         # Update the RTPT
         rtpt.step()
+
+def testNetwork(self, network, testLoader, ret_confusion=False):
+        """
+        Return a real number in [0,100] denoting accuracy
+        @network is the name of the neural network or probabilisitc circuit to check the accuracy. 
+        @testLoader is the input and output pairs.
+        """
+        network.eval()
+        # check if total prediction is correct
+        correct = 0
+        total = 0
+        # check if each single prediction is correct
+        singleCorrect = 0
+        singleTotal = 0
+        
+        #list to collect targets and predictions for confusion matrix
+        y_target = []
+        y_pred = []
+        with torch.no_grad():
+
+            for data, target in testLoader:               
+                output = network(data.to(self.device))
+                if len(self.n) != 0 and self.n[network] > 2 :
+                    pred = output.argmax(dim=-1, keepdim=True) # get the index of the max log-probability
+                    target = target.to(self.device).view_as(pred)
+                    
+                    correctionMatrix = (target.int() == pred.int()).view(target.shape[0], -1)
+                    y_target = np.concatenate( (y_target, target.int().flatten().cpu() ))
+                    y_pred = np.concatenate( (y_pred , pred.int().flatten().cpu()) )
+                    
+                    
+                    correct += correctionMatrix.all(1).sum().item()
+                    total += target.shape[0]
+                    singleCorrect += correctionMatrix.sum().item()
+                    singleTotal += target.numel()
+                else: 
+                    pred = np.array([int(i[0]<0.5) for i in output.tolist()])
+                    target = target.numpy()
+                    correct += (pred.reshape(target.shape) == target).sum()
+                    total += len(pred)
+        accuracy = correct / total
+
+        if len(self.n) != 0 and self.n[network] > 2:
+            singleAccuracy = singleCorrect / singleTotal
+        else:
+            singleAccuracy = 0
+
+        if ret_confusion:
+            confusionMatrix = confusion_matrix(np.array(y_target), np.array(y_pred))
+            return accuracy, singleAccuracy, confusionMatrix
+
+        return accuracy, singleAccuracy
