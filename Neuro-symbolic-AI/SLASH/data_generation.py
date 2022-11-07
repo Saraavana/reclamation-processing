@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import Dataset
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
+import column
 
 
 class Intellizenz(Dataset):
@@ -126,42 +127,7 @@ class Intellizenz_Data(Dataset):
         # 1. Load the data 
         data_df = pd.read_parquet(path)
 
-        features = [
-            'place_kirche', 'place_hotel', 'place_cafe',
-            'place_theater', 'place_club', 'place_halle',
-            'place_gaststaette', 'place_festhalle', 'place_kulturzentrum',
-            'place_festzelt', 'place_schloss', 'place_pub',
-            'place_stadthalle', 'place_park', 'place_gasthof',
-            'place_kabarett', 'place_arena', 'place_schlachthof',
-            'place_wandelhalle', 'place_turnhalle', 'place_buergerhaus',
-            'place_museum', 'place_rathaus', 'place_staatsbad',
-            'place_zelt', 'place_jazz', 'place_forum',
-            'place_gymnasium', 'place_schule', 'place_sporthalle', 
-
-            'band_kurorchester bad wil', 'band_musikverein harmonie', 'band_kasalla',
-            'band_cat ballou', 'band_roncalli  royal orch', 'band_jugendblasorchester',
-            'band_kurorchester bad pyr', 'band_hoehner', 'band_paveier',
-            'band_domstuermer', 'band_kluengelkoepp', 'band_alleinunterhalter',
-            'band_the gregorian voices', 'band_brings', 'band_musica hungarica',
-            'band_concerto', 'band_bad salzuflen orches', 'band_musikverein stadtkap',
-            'band_salonorchester hunga', 'band_miljoe', 'band_raeuber',
-            'band_kabarett leipziger f', 'band_marita koellner', 'band_salon-orchester hung',
-            'band_blaeck foeoess', 'band_schuelerinnen und sc', 'band_romain vicente',
-            'band_staatliche kurkapell', 'band_musikzug der freiwil', 'band_funky marys',
-
-            'state_bavaria','state_rhineland-palatinate',
-            'state_baden-wuerttemberg',	'state_north rhine-westphalia',	
-            'state_thuringia','state_hesse',	
-            'state_brandenburg', 'state_schleswig-holstein',	
-            'state_berlin',	'state_mecklenburg-western pomerania',	
-            'state_lower saxony', 'state_hamburg',	
-            'state_saarland', 'state_saxony-anhalt',	
-            'state_saxony',	'state_bremen',
-
-            'vg_datum_year','vg_datum_month','vg_datum_day_of_week','vg_datum_season', 
-
-            'veranst_segment','vg_inkasso'
-        ]
+        features = column.features_v1
 
         data_df = data_df[features]
 
