@@ -1,0 +1,4 @@
+outs:
+- md5: ab1859de9307ec4df66554893d478563
+  size: 90298172
+  path: export_train_vg_state_stats_for_range_of_vginkasso_2016_2020_v1.parquet.gzip
