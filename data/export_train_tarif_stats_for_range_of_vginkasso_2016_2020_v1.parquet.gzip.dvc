@@ -1,0 +1,4 @@
+outs:
+- md5: 32ad404bda24bc7e77cb806230822e87
+  size: 84396073
+  path: export_train_tarif_stats_for_range_of_vginkasso_2016_2020_v1.parquet.gzip
