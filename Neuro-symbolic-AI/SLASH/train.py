@@ -13,6 +13,7 @@ from einsum_wrapper import EiNet
 from network_nn import Net_nn, Simple_nn
 
 from sklearn.metrics import confusion_matrix
+import wandb
 
 program ='''
 tab(t1).
@@ -46,6 +47,13 @@ def slash_intellizenz(exp_name, exp_dict):
     Path("./Neuro-symbolic-AI/SLASH/data/"+exp_name+"/").mkdir(parents=True, exist_ok=True)
 
     print("Experiment parameters:", exp_dict)
+
+    wandb.init(project="Intellizenz", entity="elsaravana")
+    wandb.config = {
+        "learning_rate": exp_dict['lr'],
+        "epochs": exp_dict['epochs'],
+        "batch_size": exp_dict['bs']
+    }
 
     #NETWORKS
 
@@ -130,6 +138,9 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt):
         
         #TEST
         time_test = time.time()
+
+        # To see gradients of the weights as histograms in the 
+        wandb.watch(intellizenz_net)
 
         #test accuracy
         train_acc, _, = SLASHobj.testNetwork('vgsegment', train_loader, ret_confusion=False)
@@ -230,6 +241,8 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt):
             output = intellizenz_net(data)
             loss = loss_fn(output, target)
 
+            wandb.log({"loss": loss})
+
             # backward
             optimizer.zero_grad()
             loss.backward()
@@ -243,6 +256,9 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt):
         # show
         print('Average_train_loss: {}, total_train_loss: {:.6f}'.format(avg_loss, total_loss.data.item()))
         
+        # To see gradients of the weights as histograms in the 
+        wandb.watch(intellizenz_net)
+
         #TEST
         time_test = time.time()
 
