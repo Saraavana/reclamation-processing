@@ -1,0 +1,4 @@
+outs:
+- md5: 0839406534fa55adb2b6d89569353725
+  size: 25573298
+  path: export_test_tarif_stats_for_range_of_vginkasso_2016_2020_v1.parquet.gzip
