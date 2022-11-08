@@ -1,0 +1,4 @@
+outs:
+- md5: 3ef44e51bac7c79545a3af9646462c54
+  size: 2849962
+  path: export_test_band_stats_for_range_of_vginkasso_2016_2020_v1.parquet.gzip
