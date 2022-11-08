@@ -225,6 +225,8 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
     loss_fn = torch.nn.CrossEntropyLoss(weight=class_weights.to(device))
     # loss_fn = torch.nn.BCELoss()
 
+    # To see gradients of the weights as histograms in the 
+    wandb.watch(intellizenz_net)
 
     for e in range(start_e, exp_dict['epochs']):
         #TRAIN
@@ -243,13 +245,10 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
         for data, target in train_loader:
             # forward
             output = intellizenz_net(data.to(device))
-
-            # output_softmax = torch.log_softmax(output, dim = 1)
-            # _, output_tags = torch.max(output_softmax, dim = 1) 
             # loss = loss_fn(output_tags, target)
 
             loss = loss_fn(output, target.to(device))
-            train_acc = multi_acc(output, target.to(device))
+            train_accuracy = multi_acc(output, target.to(device))
             
 
             # backward
@@ -258,23 +257,32 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
             optimizer.step()
 
             train_epoch_loss += loss.item()
-            train_epoch_acc += train_acc.item()
+            train_epoch_acc += train_accuracy.item()
+            # wandb.sklearn.plot_learning_curve(intellizenz_net, data, target)
 
         
         # compute the training loss of the epoch
         train_loss = train_epoch_loss / len(train_loader)
-        # train_accuracy = train_epoch_acc / len(train_loader)
+        train_acc = train_epoch_acc / len(train_loader)
         
         
-        # To see gradients of the weights as histograms in the 
-        wandb.watch(intellizenz_net)
+        
 
         #TEST
         time_test = time.time()
 
-        #test accuracy
-        train_acc, _, = testNetwork(intellizenz_net, train_loader, ret_confusion=False)
-        test_acc, _, = testNetwork(intellizenz_net, test_loader, ret_confusion=False)
+        #Test accuracy
+        test_epoch_acc = 0
+        for data, target in test_loader:
+            pred = intellizenz_net(data.to(device))
+            
+            test_accuracy = multi_acc(pred, target.to(device))
+            test_epoch_acc += test_accuracy.item()
+
+            # wandb.sklearn.plot_learning_curve(intellizenz_net, data, target)
+            
+        
+        test_acc = test_epoch_acc / len(test_loader)
 
         print("Test Accuracy:",test_acc)
         print("Train Accuracy:",train_acc)
@@ -347,9 +355,14 @@ def testNetwork(network, testLoader, ret_confusion=False):
 
 # Estimate the multi-class accuracy
 def multi_acc(y_pred, y_test):
+
     y_pred_softmax = torch.log_softmax(y_pred, dim = 1)
     _, y_pred_tags = torch.max(y_pred_softmax, dim = 1)    
     
+    # wandb.sklearn.plot_roc(y_test, y_pred_tags, ['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'])
+    # wandb.sklearn.plot_precision_recall(y_test, y_pred_tags, ['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'])
+    # wandb.sklearn.plot_confusion_matrix(y_test, y_pred_tags, ['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'])
+
     correct_pred = (y_pred_tags == y_test).float()
     acc = correct_pred.sum() / len(correct_pred)
     
@@ -377,23 +390,23 @@ def get_class_distribution(obj):
             
     return count_dict
 
-def get_all_target_train_data(path): 
+def get_all_target_data(path): 
     data_df = pd.read_parquet(path) 
     y = data_df['veranst_segment']
     return y
 
 def get_weighted_sampler(path):
-    y_train = get_all_target_train_data(path)
+    y = get_all_target_data(path)
     
     # we obtain a tensor of all target values in the training data
     target_list = []
-    for target in y_train.values:
+    for target in y.values:
         target_list.append(target)
 
     target_list = torch.tensor(target_list) 
 
     # Calculate the weight of each class(veranst_segment=0/1/2) in the training data
-    class_count = [i for i in get_class_distribution(y_train).values()]
+    class_count = [i for i in get_class_distribution(y).values()]
     class_weights = 1./torch.tensor(class_count, dtype=torch.float) 
 
     # To address class imbalance: WeightedRandomSampler is used to ensure that each mini batch contains samples from all the classes

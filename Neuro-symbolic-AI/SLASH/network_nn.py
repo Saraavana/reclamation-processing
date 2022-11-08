@@ -56,6 +56,10 @@ class Simple_nn(nn.Module):
                 nn.ReLU(),
                 nn.Linear(1024, 84),
                 nn.ReLU(),
-                nn.Linear(84, 3),
-                nn.Softmax(1)
+                nn.Linear(84, 3) #[[-1.4308e+03,  6.8945e+03,  6.2874e+03], [-2.8680e+01,  3.6031e+01,  2.1507e+01]]
+                # ,
+                # nn.Softmax(1) #[[0.,  1.,  0.], [0.,  0.,  1.]] - Elements of input tensor from previous layer would be rescaled
+                                #in the range of [0,1] and sum to 1.
+                                # softmax(dim=1) - sum of all the elements in row = 1
+                                # softmax(dim=0) - sum of all the elements in column = 1
             )
