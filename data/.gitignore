@@ -19,3 +19,4 @@
 /export_test_vg_state_stats_for_range_of_vginkasso_2016_2020_v1.parquet.gzip
 /export_test_tarif_stats_for_range_of_vginkasso_2016_2020_v1.parquet.gzip
 /export_test_band_stats_for_range_of_vginkasso_2016_2020_v1.parquet.gzip
+/export_training_features_2016_2020_v1.parquet.gzip
