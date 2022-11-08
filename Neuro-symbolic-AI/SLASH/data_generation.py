@@ -4,7 +4,9 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 import os, sys; 
-sys.path.append(os.path.dirname(os.path.realpath('C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/column.py')))
+column_path = os.path.dirname(os.path.realpath('C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/column.py'))
+if sys.path.__contains__(column_path)==False:
+    sys.path.append(column_path)
 
 import column
 
@@ -51,52 +53,56 @@ class Intellizenz(Dataset):
         #'vg_datum_year', 
         'vg_datum_month', 'vg_datum_day_of_week', 'vg_datum_season', 'veranst_segment', 'vg_inkasso']
 
-        features = [
-            'place_kirche', 'place_hotel', 'place_cafe',
-            'place_theater', 'place_club', 'place_halle',
-            'place_gaststaette', 'place_festhalle', 'place_kulturzentrum',
-            'place_festzelt', 'place_schloss', 'place_pub',
-            'place_stadthalle', 'place_park', 'place_gasthof',
-            'place_kabarett', 'place_arena', 'place_schlachthof',
-            'place_wandelhalle', 'place_turnhalle', 'place_buergerhaus',
-            'place_museum', 'place_rathaus', 'place_staatsbad',
-            'place_zelt', 'place_jazz', 'place_forum',
-            'place_gymnasium', 'place_schule', 'place_sporthalle', 
+        # features = [
+        #     'place_kirche', 'place_hotel', 'place_cafe',
+        #     'place_theater', 'place_club', 'place_halle',
+        #     'place_gaststaette', 'place_festhalle', 'place_kulturzentrum',
+        #     'place_festzelt', 'place_schloss', 'place_pub',
+        #     'place_stadthalle', 'place_park', 'place_gasthof',
+        #     'place_kabarett', 'place_arena', 'place_schlachthof',
+        #     'place_wandelhalle', 'place_turnhalle', 'place_buergerhaus',
+        #     'place_museum', 'place_rathaus', 'place_staatsbad',
+        #     'place_zelt', 'place_jazz', 'place_forum',
+        #     'place_gymnasium', 'place_schule', 'place_sporthalle', 
 
-            'band_kurorchester bad wil', 'band_musikverein harmonie', 'band_kasalla',
-            'band_cat ballou', 'band_roncalli  royal orch', 'band_jugendblasorchester',
-            'band_kurorchester bad pyr', 'band_hoehner', 'band_paveier',
-            'band_domstuermer', 'band_kluengelkoepp', 'band_alleinunterhalter',
-            'band_the gregorian voices', 'band_brings', 'band_musica hungarica',
-            'band_concerto', 'band_bad salzuflen orches', 'band_musikverein stadtkap',
-            'band_salonorchester hunga', 'band_miljoe', 'band_raeuber',
-            'band_kabarett leipziger f', 'band_marita koellner', 'band_salon-orchester hung',
-            'band_blaeck foeoess', 'band_schuelerinnen und sc', 'band_romain vicente',
-            'band_staatliche kurkapell', 'band_musikzug der freiwil', 'band_funky marys',
+        #     'band_kurorchester bad wil', 'band_musikverein harmonie', 'band_kasalla',
+        #     'band_cat ballou', 'band_roncalli  royal orch', 'band_jugendblasorchester',
+        #     'band_kurorchester bad pyr', 'band_hoehner', 'band_paveier',
+        #     'band_domstuermer', 'band_kluengelkoepp', 'band_alleinunterhalter',
+        #     'band_the gregorian voices', 'band_brings', 'band_musica hungarica',
+        #     'band_concerto', 'band_bad salzuflen orches', 'band_musikverein stadtkap',
+        #     'band_salonorchester hunga', 'band_miljoe', 'band_raeuber',
+        #     'band_kabarett leipziger f', 'band_marita koellner', 'band_salon-orchester hung',
+        #     'band_blaeck foeoess', 'band_schuelerinnen und sc', 'band_romain vicente',
+        #     'band_staatliche kurkapell', 'band_musikzug der freiwil', 'band_funky marys',
 
-            'state_bavaria','state_rhineland-palatinate',
-            'state_baden-wuerttemberg',	'state_north rhine-westphalia',	
-            'state_thuringia','state_hesse',	
-            'state_brandenburg', 'state_schleswig-holstein',	
-            'state_berlin',	'state_mecklenburg-western pomerania',	
-            'state_lower saxony', 'state_hamburg',	
-            'state_saarland', 'state_saxony-anhalt',	
-            'state_saxony',	'state_bremen',
+        #     'state_bavaria','state_rhineland-palatinate',
+        #     'state_baden-wuerttemberg',	'state_north rhine-westphalia',	
+        #     'state_thuringia','state_hesse',	
+        #     'state_brandenburg', 'state_schleswig-holstein',	
+        #     'state_berlin',	'state_mecklenburg-western pomerania',	
+        #     'state_lower saxony', 'state_hamburg',	
+        #     'state_saarland', 'state_saxony-anhalt',	
+        #     'state_saxony',	'state_bremen',
 
-            'vg_datum_year','vg_datum_month','vg_datum_day_of_week','vg_datum_season', 
+        #     'vg_datum_year','vg_datum_month','vg_datum_day_of_week','vg_datum_season', 
 
-            'veranst_segment','vg_inkasso'
-        ]
+        #     'veranst_segment','vg_inkasso'
+        # ]
+
+        features = column.features_v3 #238 features
 
         data_df = data_df[features]
+        
+        data_df = data_df.fillna(-1) # Fill the Empty NaN values in all the cells with -1
 
         X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso'])] # 152 features
         # X = data_df.loc[:,~data_df.columns.isin(sfdfs)] # 152 features
         y = data_df['veranst_segment']
 
         # Encode categorical labels
-        l_enc = LabelEncoder()
-        X['vg_datum_year'] = l_enc.fit_transform(X['vg_datum_year'])
+        # l_enc = LabelEncoder()
+        # X['vg_datum_year'] = l_enc.fit_transform(X['vg_datum_year'])
 
         # def fillmissing(df, feature):
         #     df[feature] = df[feature].fillna(0)
@@ -107,8 +113,7 @@ class Intellizenz(Dataset):
         #     fillmissing(X, feature= feature)
         
         # X.info()
-        print('##########################################')
-        y = l_enc.fit_transform(y)
+        # y = l_enc.fit_transform(y)
 
 
         self.X = torch.Tensor(X.values) #dimension: [n, 152]
@@ -130,20 +135,23 @@ class Intellizenz_Data(Dataset):
         # 1. Load the data 
         data_df = pd.read_parquet(path)
 
-        features = column.features_v1
+        # features = column.features_v1
+        features = column.features_v3 #238 features
 
         data_df = data_df[features]
 
-        X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso'])] # 152 features
+        data_df = data_df.fillna(-1) # Fill the Empty NaN values in all the cells with -1
+
+        X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso'])] #236 features 
         y = data_df['veranst_segment']
 
         # Encode categorical labels
-        l_enc = LabelEncoder()
-        X['vg_datum_year'] = l_enc.fit_transform(X['vg_datum_year'])
+        # l_enc = LabelEncoder()
+        # X['vg_datum_year'] = l_enc.fit_transform(X['vg_datum_year'])
 
-        y = l_enc.fit_transform(y)
+        # y = l_enc.fit_transform(y)
 
-        self.X = torch.Tensor(X.values) #dimension: [n, 152]
+        self.X = torch.Tensor(X.values) #dimension: [n, 236]
         self.y = torch.Tensor(y) #dimension: [n]
                     
     def __getitem__(self, index):

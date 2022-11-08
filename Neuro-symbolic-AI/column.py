@@ -39,7 +39,7 @@ features_v2 = [
 
 ]
 
-# Feautes used - 'VG_RAUM_KEYWORDS', 'VG_DATUM_VON', 'vg_state', 'BAND', 'PROMOTER', TARIF_BEZ
+# 142 Feautes used - 'VG_RAUM_KEYWORDS', 'VG_DATUM_VON', 'vg_state', 'BAND', 'PROMOTER', TARIF_BEZ
 features_v3 = ['place_kirche', 'place_hotel', 'place_cafe',
  'place_theater', 'place_club', 'place_halle',
  'place_gaststaette', 'place_festhalle', 'place_kulturzentrum',
@@ -115,5 +115,7 @@ features_v3 = ['place_kirche', 'place_hotel', 'place_cafe',
 'promoter_konzertbuero schoneberg gmbh',  	
 'promoter_staatsbad salzuflen gmbh', 
 'promoter_kurverwaltung bad mergentheim gmbh', 
-'promoter_gisbert hiller' 
+'promoter_gisbert hiller',
+
+'veranst_segment','vg_inkasso'
 ]

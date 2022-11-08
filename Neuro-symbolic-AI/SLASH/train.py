@@ -55,19 +55,21 @@ def slash_intellizenz(exp_name, exp_dict):
         "batch_size": exp_dict['bs']
     }
 
-    #NETWORKS
+    train_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_training_features_2016_2020_v1.parquet.gzip' 
+    test_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_testing_features_2016_2020_v1.parquet.gzip'
 
+    #NETWORKS
     if exp_dict['credentials']=='SNN':   
         #Intellizenztype network
         intellizenz_net = Net_nn(80) # 152 - number of features/columns
-        slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt)
+        slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path)
     else:
         intellizenz_net = Simple_nn(80).model
-        simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt)
+        simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path)
 
     
 # Training the model with SLASH + Neural Network
-def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt):
+def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path):
     #trainable params
     num_trainable_params = [sum(p.numel() for p in intellizenz_net.parameters() if p.requires_grad)]
     num_params = [sum(p.numel() for p in intellizenz_net.parameters())]
@@ -111,8 +113,6 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt):
         train_acc_list = saved_model['train_acc_list']
         test_acc_list = saved_model['test_acc_list']        
         
-    train_path = 'C:/Saravana/Projects/Intellizenz/intellizenz-model-training/data/export_training_features_2016_2020.parquet.gzip' 
-    test_path = 'C:/Saravana/Projects/Intellizenz/intellizenz-model-training/data/export_testing_features_2016_2020.parquet.gzip'
 
     # Return n batches, where each batch contain exp_dict['bs'] values. Each value has a tensor of features and its target value event(veranst) segment(from 0 to 2)
     train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
@@ -178,7 +178,7 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt):
         rtpt.step()
 
 # Training the model with only simple Neural Network
-def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt):
+def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path):
     #trainable params
     num_trainable_params = [sum(p.numel() for p in intellizenz_net.parameters() if p.requires_grad)]
     num_params = [sum(p.numel() for p in intellizenz_net.parameters())]
@@ -196,7 +196,6 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt):
 
     startTime = time.time()
   
-    
     start_e= 0
     if exp_dict['resume']:
         print("resuming experiment")
@@ -212,14 +211,8 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt):
         #metrics
         train_acc_list = saved_model['train_acc_list']
         test_acc_list = saved_model['test_acc_list']        
-        
-    train_path = 'C:/Saravana/Projects/Intellizenz/intellizenz-model-training/data/export_training_features_2016_2020.parquet.gzip' 
-    test_path = 'C:/Saravana/Projects/Intellizenz/intellizenz-model-training/data/export_testing_features_2016_2020.parquet.gzip'
 
     # Return n batches, where each batch contain exp_dict['bs'] values. Each value has a tensor of features and its target value event(veranst) segment(from 0 to 2)
-    train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
-
-    
     train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
     test_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=test_path), batch_size=exp_dict['bs'], shuffle=True)
    
