@@ -90,10 +90,10 @@ class Intellizenz(Dataset):
         #     'veranst_segment','vg_inkasso'
         # ]
 
-        features = column.features_v3 #238 features
+        features = column.features_v4 #238 features
 
         data_df = data_df[features]
-        
+
         data_df = data_df.fillna(-1) # Fill the Empty NaN values in all the cells with -1
 
         X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso'])] # 152 features
@@ -117,7 +117,7 @@ class Intellizenz(Dataset):
 
 
         self.X = torch.Tensor(X.values) #dimension: [n, 152]
-        self.y = torch.Tensor(y) #dimension: [n]
+        self.y = torch.Tensor(y.values) #dimension: [n]
 
     def __len__(self):
         return len(self.y)
@@ -136,7 +136,7 @@ class Intellizenz_Data(Dataset):
         data_df = pd.read_parquet(path)
 
         # features = column.features_v1
-        features = column.features_v3 #238 features
+        features = column.features_v4 #238 features
 
         data_df = data_df[features]
 
@@ -150,9 +150,8 @@ class Intellizenz_Data(Dataset):
         # X['vg_datum_year'] = l_enc.fit_transform(X['vg_datum_year'])
 
         # y = l_enc.fit_transform(y)
-
         self.X = torch.Tensor(X.values) #dimension: [n, 236]
-        self.y = torch.Tensor(y) #dimension: [n]
+        self.y = torch.Tensor(y.values) #dimension: [n]
                     
     def __getitem__(self, index):
         return self.X[index], int(self.y[index])

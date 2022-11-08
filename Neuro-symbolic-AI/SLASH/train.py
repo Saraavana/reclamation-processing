@@ -14,6 +14,9 @@ from network_nn import Net_nn, Simple_nn
 
 from sklearn.metrics import confusion_matrix
 import wandb
+import pandas as pd
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 program ='''
 tab(t1).
@@ -64,7 +67,7 @@ def slash_intellizenz(exp_name, exp_dict):
         intellizenz_net = Net_nn(80) # 152 - number of features/columns
         slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path)
     else:
-        intellizenz_net = Simple_nn(80).model
+        intellizenz_net = Simple_nn(236).model.to(device)
         simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path)
 
     
@@ -117,8 +120,8 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, te
     # Return n batches, where each batch contain exp_dict['bs'] values. Each value has a tensor of features and its target value event(veranst) segment(from 0 to 2)
     train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
 
-    
     train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
+    # train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], sampler=weighted_sampler)
     test_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=test_path), batch_size=exp_dict['bs'], shuffle=True)
    
 
@@ -187,8 +190,6 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
 
     #OPTIMIZERS and LEARNING RATE SHEDULING
     optimizer = torch.optim.Adam(params= intellizenz_net.parameters(), lr=exp_dict['lr'], eps=1e-7)
-    loss_fn = torch.nn.BCELoss()
-
     
     #metric lists
     train_acc_list = [] #stores acc for train 
@@ -212,42 +213,58 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
         train_acc_list = saved_model['train_acc_list']
         test_acc_list = saved_model['test_acc_list']        
 
+
+
     # Return n batches, where each batch contain exp_dict['bs'] values. Each value has a tensor of features and its target value event(veranst) segment(from 0 to 2)
-    train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
+
+    # train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
+    weighted_sampler, class_weights = get_weighted_sampler(train_path)
+    train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], sampler=weighted_sampler)
     test_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=test_path), batch_size=exp_dict['bs'], shuffle=True)
    
+    loss_fn = torch.nn.CrossEntropyLoss(weight=class_weights.to(device))
+    # loss_fn = torch.nn.BCELoss()
+
 
     for e in range(start_e, exp_dict['epochs']):
         #TRAIN
         print('Epoch {}/{}...'.format(e+1, exp_dict['epochs']))
         time_train= time.time()
 
+
         # dataset_loader format ---> {'t1':tensor of features}, rule/query 
         # (rule or query->ex:":- not event(p1,0). ") 
         # Here 0 - veranstaltung(event) segment < 50 euros
         # 1 - veranstaltung(event) segment >50 euros and < 100 euros
         # 2 - veranstaltung(event) segment > 100 euros
-        total_loss = 0
+        train_epoch_loss = 0
+        train_epoch_acc = 0   
 
         for data, target in train_loader:
             # forward
-            output = intellizenz_net(data)
-            loss = loss_fn(output, target)
+            output = intellizenz_net(data.to(device))
 
-            wandb.log({"loss": loss})
+            # output_softmax = torch.log_softmax(output, dim = 1)
+            # _, output_tags = torch.max(output_softmax, dim = 1) 
+            # loss = loss_fn(output_tags, target)
+
+            loss = loss_fn(output, target.to(device))
+            train_acc = multi_acc(output, target.to(device))
+            
 
             # backward
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-            total_loss += loss.item()
+            train_epoch_loss += loss.item()
+            train_epoch_acc += train_acc.item()
+
         
         # compute the training loss of the epoch
-        avg_loss = total_loss / len(train_loader)
+        train_loss = train_epoch_loss / len(train_loader)
+        # train_accuracy = train_epoch_acc / len(train_loader)
         
-        # show
-        print('Average_train_loss: {}, total_train_loss: {:.6f}'.format(avg_loss, total_loss.data.item()))
         
         # To see gradients of the weights as histograms in the 
         wandb.watch(intellizenz_net)
@@ -263,6 +280,13 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
         print("Train Accuracy:",train_acc)
         train_acc_list.append(train_acc)
         test_acc_list.append(test_acc)
+
+        # show
+        print('Epoch: {}, Train_loss: {}, Train_accuracy: {:.6f}, Test_accuracy: {:.6f}'.format(e+1,train_loss, train_acc, test_acc))
+        
+        wandb.log({"train_loss": train_loss, 
+                    "train_accuracy": train_acc,
+                    "test_accuracy": test_acc})
         
         timestamp_train = utils.time_delta_now(time_train)
         timestamp_test = utils.time_delta_now(time_test)
@@ -289,7 +313,7 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
         # Update the RTPT
         rtpt.step()
 
-def testNetwork(self, network, testLoader, ret_confusion=False):
+def testNetwork(network, testLoader, ret_confusion=False):
         """
         Return a real number in [0,100] denoting accuracy
         @network is the name of the neural network or probabilisitc circuit to check the accuracy. 
@@ -299,44 +323,85 @@ def testNetwork(self, network, testLoader, ret_confusion=False):
         # check if total prediction is correct
         correct = 0
         total = 0
-        # check if each single prediction is correct
-        singleCorrect = 0
-        singleTotal = 0
         
         #list to collect targets and predictions for confusion matrix
         y_target = []
         y_pred = []
+
         with torch.no_grad():
-
             for data, target in testLoader:               
-                output = network(data.to(self.device))
-                if len(self.n) != 0 and self.n[network] > 2 :
-                    pred = output.argmax(dim=-1, keepdim=True) # get the index of the max log-probability
-                    target = target.to(self.device).view_as(pred)
-                    
-                    correctionMatrix = (target.int() == pred.int()).view(target.shape[0], -1)
-                    y_target = np.concatenate( (y_target, target.int().flatten().cpu() ))
-                    y_pred = np.concatenate( (y_pred , pred.int().flatten().cpu()) )
-                    
-                    
-                    correct += correctionMatrix.all(1).sum().item()
-                    total += target.shape[0]
-                    singleCorrect += correctionMatrix.sum().item()
-                    singleTotal += target.numel()
-                else: 
-                    pred = np.array([int(i[0]<0.5) for i in output.tolist()])
-                    target = target.numpy()
-                    correct += (pred.reshape(target.shape) == target).sum()
-                    total += len(pred)
+                output = network(data.to(device))
+                pred = np.array([int(i[0]<0.5) for i in output.tolist()])
+                target = target.numpy()
+                correct += (pred.reshape(target.shape) == target).sum()
+                total += len(pred)
         accuracy = correct / total
-
-        if len(self.n) != 0 and self.n[network] > 2:
-            singleAccuracy = singleCorrect / singleTotal
-        else:
-            singleAccuracy = 0
+        
+        singleAccuracy = 0
 
         if ret_confusion:
             confusionMatrix = confusion_matrix(np.array(y_target), np.array(y_pred))
             return accuracy, singleAccuracy, confusionMatrix
 
         return accuracy, singleAccuracy
+
+# Estimate the multi-class accuracy
+def multi_acc(y_pred, y_test):
+    y_pred_softmax = torch.log_softmax(y_pred, dim = 1)
+    _, y_pred_tags = torch.max(y_pred_softmax, dim = 1)    
+    
+    correct_pred = (y_pred_tags == y_test).float()
+    acc = correct_pred.sum() / len(correct_pred)
+    
+    acc = torch.round(acc * 100)
+    
+    return acc
+
+# Estimate the distribution(frequency/count) of each class(veranst_segment-0,1,2)
+def get_class_distribution(obj):
+    count_dict = {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+    }
+    
+    for i in obj:
+        if i == 0: 
+            count_dict['0'] += 1
+        elif i == 1: 
+            count_dict['1'] += 1
+        elif i == 2: 
+            count_dict['2'] += 1            
+        else:
+            print("Check classes.")
+            
+    return count_dict
+
+def get_all_target_train_data(path): 
+    data_df = pd.read_parquet(path) 
+    y = data_df['veranst_segment']
+    return y
+
+def get_weighted_sampler(path):
+    y_train = get_all_target_train_data(path)
+    
+    # we obtain a tensor of all target values in the training data
+    target_list = []
+    for target in y_train.values:
+        target_list.append(target)
+
+    target_list = torch.tensor(target_list) 
+
+    # Calculate the weight of each class(veranst_segment=0/1/2) in the training data
+    class_count = [i for i in get_class_distribution(y_train).values()]
+    class_weights = 1./torch.tensor(class_count, dtype=torch.float) 
+
+    # To address class imbalance: WeightedRandomSampler is used to ensure that each mini batch contains samples from all the classes
+    # WeightedRandomSampler expects a weight for each sample. We do that using as follows.
+    class_weights_all = class_weights[target_list]
+
+    weighted_sampler = torch.utils.data.WeightedRandomSampler(weights=class_weights_all, 
+                                                                num_samples=len(class_weights_all),
+                                                                replacement=True)
+
+    return weighted_sampler, class_weights
