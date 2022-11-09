@@ -12,7 +12,7 @@ import utils
 from einsum_wrapper import EiNet
 from network_nn import Net_nn, Simple_nn
 
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, classification_report
 import wandb
 import pandas as pd
 
@@ -242,17 +242,21 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
         train_epoch_loss = 0
         train_epoch_acc = 0   
 
+        intellizenz_net.train()
         for data, target in train_loader:
+
+            optimizer.zero_grad()
+
             # forward
             output = intellizenz_net(data.to(device))
             # loss = loss_fn(output_tags, target)
 
             loss = loss_fn(output, target.to(device))
-            train_accuracy = multi_acc(output, target.to(device))
+            train_accuracy, _, _ = multi_acc(output, target.to(device))
             
 
             # backward
-            optimizer.zero_grad()
+            # optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
@@ -265,21 +269,27 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
         train_loss = train_epoch_loss / len(train_loader)
         train_acc = train_epoch_acc / len(train_loader)
         
-        
-        
 
         #TEST
         time_test = time.time()
 
         #Test accuracy
         test_epoch_acc = 0
+        y_pred_list = []
+        y_true_list = []
+        y_probas_list = []
+
+        intellizenz_net.eval()
         for data, target in test_loader:
             pred = intellizenz_net(data.to(device))
             
-            test_accuracy = multi_acc(pred, target.to(device))
+            test_accuracy, y_pred, y_probas = multi_acc(pred, target.to(device))
             test_epoch_acc += test_accuracy.item()
 
             # wandb.sklearn.plot_learning_curve(intellizenz_net, data, target)
+            y_pred_list.append(y_pred.cpu().tolist())
+            y_true_list.append(target.cpu().tolist())
+            y_probas_list.append(y_probas.cpu().detach().tolist())
             
         
         test_acc = test_epoch_acc / len(test_loader)
@@ -291,6 +301,38 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
 
         # show
         print('Epoch: {}, Train_loss: {}, Train_accuracy: {:.6f}, Test_accuracy: {:.6f}'.format(e+1,train_loss, train_acc, test_acc))
+        print('Length of True list: -----{}, each batch length: {}'.format(len(y_true_list),len(y_true_list[0])))
+        print('Length of Pred list: -----{}, each batch length: {}'.format(len(y_pred_list),len(y_pred_list[0])))
+        
+        #Using lambda
+        # 3d array to 1d array
+        flatten_list = lambda y:[x for a in y for x in flatten_list(a)] if type(y) is list else [y]
+        # 3d array to 2d array
+        flatten_list_two_dim = lambda y:[x for a in y for x in a] if type(y) is list else [y]
+
+        # y_pred_list = flatten_list(y_pred_list)
+        # y_true_list = flatten_list(y_true_list)
+
+        one_dim_y_pred_list = flatten_list(y_pred_list)
+        one_dim_y_true_list = flatten_list(y_true_list)
+        two_dim_y_probas_list = flatten_list_two_dim(y_probas_list)
+
+        print('Length of actual y_probas list: -----{}, each batch length: {}'.format(len(y_probas_list),len(y_probas_list[0])))
+        print('Length of transformed y_probas list: -----{}'.format(len(two_dim_y_probas_list)))
+
+        print('Length of pred list: ',len(one_dim_y_pred_list))
+        print('Length of True list: ',len(one_dim_y_true_list))
+
+        confusionMatrix = confusion_matrix(one_dim_y_true_list, one_dim_y_pred_list, labels=[0, 1, 2])
+        clf_report = classification_report(one_dim_y_true_list, one_dim_y_pred_list, labels=[0, 1, 2])
+
+        wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
+                            preds=one_dim_y_pred_list, y_true=one_dim_y_true_list,
+                            class_names=[0, 1, 2])})
+        wandb.log({"pr" : wandb.plot.pr_curve(y_true=one_dim_y_pred_list, y_probas=two_dim_y_probas_list,
+                     labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        wandb.log({"roc" : wandb.plot.roc_curve(y_true=one_dim_y_pred_list, y_probas=two_dim_y_probas_list,
+                        labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
         
         wandb.log({"train_loss": train_loss, 
                     "train_accuracy": train_acc,
@@ -355,10 +397,9 @@ def testNetwork(network, testLoader, ret_confusion=False):
 
 # Estimate the multi-class accuracy
 def multi_acc(y_pred, y_test):
-
     y_pred_softmax = torch.log_softmax(y_pred, dim = 1)
     _, y_pred_tags = torch.max(y_pred_softmax, dim = 1)    
-    
+
     # wandb.sklearn.plot_roc(y_test, y_pred_tags, ['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'])
     # wandb.sklearn.plot_precision_recall(y_test, y_pred_tags, ['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'])
     # wandb.sklearn.plot_confusion_matrix(y_test, y_pred_tags, ['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'])
@@ -368,7 +409,7 @@ def multi_acc(y_pred, y_test):
     
     acc = torch.round(acc * 100)
     
-    return acc
+    return acc, y_pred_tags, y_pred_softmax
 
 # Estimate the distribution(frequency/count) of each class(veranst_segment-0,1,2)
 def get_class_distribution(obj):
