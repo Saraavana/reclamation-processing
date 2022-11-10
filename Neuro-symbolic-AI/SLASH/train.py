@@ -301,8 +301,8 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
 
         # show
         print('Epoch: {}, Train_loss: {}, Train_accuracy: {:.6f}, Test_accuracy: {:.6f}'.format(e+1,train_loss, train_acc, test_acc))
-        print('Length of True list: -----{}, each batch length: {}'.format(len(y_true_list),len(y_true_list[0])))
-        print('Length of Pred list: -----{}, each batch length: {}'.format(len(y_pred_list),len(y_pred_list[0])))
+        # print('Length of True list: -----{}, each batch length: {}'.format(len(y_true_list),len(y_true_list[0])))
+        # print('Length of Pred list: -----{}, each batch length: {}'.format(len(y_pred_list),len(y_pred_list[0])))
         
         #Using lambda
         # 3d array to 1d array
@@ -317,11 +317,10 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
         one_dim_y_true_list = flatten_list(y_true_list)
         two_dim_y_probas_list = flatten_list_two_dim(y_probas_list)
 
-        print('Length of actual y_probas list: -----{}, each batch length: {}'.format(len(y_probas_list),len(y_probas_list[0])))
-        print('Length of transformed y_probas list: -----{}'.format(len(two_dim_y_probas_list)))
-
-        print('Length of pred list: ',len(one_dim_y_pred_list))
-        print('Length of True list: ',len(one_dim_y_true_list))
+        # print('Length of actual y_probas list: -----{}, each batch length: {}'.format(len(y_probas_list),len(y_probas_list[0])))
+        # print('Length of transformed y_probas list: -----{}'.format(len(two_dim_y_probas_list)))
+        # print('Length of pred list: ',len(one_dim_y_pred_list))
+        # print('Length of True list: ',len(one_dim_y_true_list))
 
         confusionMatrix = confusion_matrix(one_dim_y_true_list, one_dim_y_pred_list, labels=[0, 1, 2])
         clf_report = classification_report(one_dim_y_true_list, one_dim_y_pred_list, labels=[0, 1, 2])
@@ -397,8 +396,9 @@ def testNetwork(network, testLoader, ret_confusion=False):
 
 # Estimate the multi-class accuracy
 def multi_acc(y_pred, y_test):
-    y_pred_softmax = torch.log_softmax(y_pred, dim = 1)
-    _, y_pred_tags = torch.max(y_pred_softmax, dim = 1)    
+    # y_pred_softmax = torch.log_softmax(y_pred, dim = 1)
+    # _, y_pred_tags = torch.max(y_pred_softmax, dim = 1)    
+    _, y_pred_tags = torch.max(y_pred, dim = 1)
 
     # wandb.sklearn.plot_roc(y_test, y_pred_tags, ['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'])
     # wandb.sklearn.plot_precision_recall(y_test, y_pred_tags, ['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'])
@@ -409,7 +409,8 @@ def multi_acc(y_pred, y_test):
     
     acc = torch.round(acc * 100)
     
-    return acc, y_pred_tags, y_pred_softmax
+    # return acc, y_pred_tags, y_pred_softmax
+    return acc, y_pred_tags, y_pred
 
 # Estimate the distribution(frequency/count) of each class(veranst_segment-0,1,2)
 def get_class_distribution(obj):
