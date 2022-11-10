@@ -9,13 +9,13 @@ date_string = datetime.datetime.today().strftime('%d-%m-%Y')
 #                     'start_date':date_string, 'resume':True, 'p_num':6, 'credentials':'SNN',
 #               'explanation': """Intellizenz experiment using WMC for a simple classification."""}}
 
-experiments = {'slash-with-nn': 
-                   {'lr': 0.00001, 'bs':32, 'epochs':500, 'use_em':False,
-                    'start_date':date_string, 'resume':True, 'p_num':6, 'credentials':'SNN'}}
+# experiments = {'slash-with-nn': 
+#                    {'lr': 0.001, 'bs':64, 'epochs':200, 'use_em':False,
+#                     'start_date':date_string, 'resume':True, 'p_num':6, 'credentials':'SNN'}}
 
 # experiments = {'simple-nn': 
 #                    {'lr': 0.00001, 'bs':128, 'epochs':500, 'use_em':False,
-#                     'start_date':date_string, 'resume':True, 'p_num':6, 'credentials':'NN'}}
+#                     'start_date':date_string, 'resume':False, 'p_num':6, 'credentials':'NN'}}
 
 # experiments = {'tabnet': 
 #                    {'lr': 0.001, 'bs':64, 'epochs':200, 'use_em':False,
@@ -25,10 +25,10 @@ experiments = {'slash-with-nn':
 #                    {'lr': 0.001, 'bs':64, 'epochs':200, 'use_em':False,
 #                     'start_date':date_string, 'resume':True, 'p_num':6, 'credentials':'STN'}}
 
-# experiments = {'predictive-whittle-network-einsum': 
-#                    {
-#                     'lr': 0.00001, 'bs':64, 'epochs':10, 'use_em':False,
-#                     'start_date':date_string, 'resume':False, 'p_num':6, 'credentials':'PWN_ES'}}
+experiments = {'predictive-whittle-network-einsum': 
+                   {
+                    'lr': 0.00001, 'bs':64, 'epochs':10, 'use_em':False,
+                    'start_date':date_string, 'resume':False, 'p_num':6, 'credentials':'PWN_ES'}}
 
 
 

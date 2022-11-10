@@ -806,6 +806,7 @@ class SLASH(object):
                 output = self.networkMapping[network](data.to(self.device))
                 if len(self.n) != 0 and self.n[network] > 2 :
                     pred = output.argmax(dim=-1, keepdim=True) # get the index of the max log-probability
+                    print('The predictions: {} and n value: {}'.format(pred, self.n))
                     target = target.to(self.device).view_as(pred)
                     
                     correctionMatrix = (target.int() == pred.int()).view(target.shape[0], -1)
@@ -819,6 +820,7 @@ class SLASH(object):
                     singleTotal += target.numel()
                 else: 
                     pred = np.array([int(i[0]<0.5) for i in output.tolist()])
+                    print('The predictions: ',pred)
                     target = target.numpy()
                     
                     #y_target.append(target)

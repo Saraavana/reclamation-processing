@@ -9,8 +9,17 @@ import time
 import numpy as np
 import utils
 
-from einsum_wrapper import EiNet
-from network_nn import Net_nn, Simple_nn
+import os, sys; 
+column_path = os.path.dirname(os.path.realpath('C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/column.py'))
+if sys.path.__contains__(column_path)==False:
+    sys.path.append(column_path)
+
+import column
+from PWN.model.wein import WEin
+from PWN.model.wein.wein_config import WEinConfig
+
+# from einsum_wrapper import EiNet
+from network_nn import *
 
 from sklearn.metrics import confusion_matrix, classification_report
 import wandb
@@ -51,12 +60,12 @@ def slash_intellizenz(exp_name, exp_dict):
 
     print("Experiment parameters:", exp_dict)
 
-    wandb.init(project="Intellizenz", entity="elsaravana")
-    wandb.config = {
-        "learning_rate": exp_dict['lr'],
-        "epochs": exp_dict['epochs'],
-        "batch_size": exp_dict['bs']
-    }
+    # wandb.init(project="Intellizenz", entity="elsaravana")
+    # wandb.config = {
+    #     "learning_rate": exp_dict['lr'],
+    #     "epochs": exp_dict['epochs'],
+    #     "batch_size": exp_dict['bs']
+    # }
 
     train_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_training_features_2016_2020_v1.parquet.gzip' 
     test_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_testing_features_2016_2020_v1.parquet.gzip'
@@ -64,10 +73,19 @@ def slash_intellizenz(exp_name, exp_dict):
     #NETWORKS
     if exp_dict['credentials']=='SNN':   
         #Intellizenztype network
-        intellizenz_net = Net_nn(80) # 152 - number of features/columns
+        # intellizenz_net = Net_nn(80) # 80 - number of features/columns
+        intellizenz_net = Simple_nn(236,3).model.to(device)
         slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path)
+    elif exp_dict['credentials']=='PWN_ES':
+        
+        # PWN(config, config_c, train_spn_on_gt=False, train_spn_on_prediction=True, train_rnn_w_ll=False,
+        #     always_detach=True),
+        intellizenz_net = WEin(config=WEinConfig(window_level=False, prepare_joint=False))
+        # intellizenz_net = WEin(SPN(use_stft=True)) # 236 - number of features/columns
+        whittle_einsum(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path)
     else:
-        intellizenz_net = Simple_nn(236).model.to(device)
+        # intellizenz_net = Simple_nn(236,3).model.to(device)
+        intellizenz_net = MulticlassClassification(236,3).to(device)
         simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path)
 
     
@@ -115,13 +133,16 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, te
         #metrics
         train_acc_list = saved_model['train_acc_list']
         test_acc_list = saved_model['test_acc_list']        
-        
+
+    
+    weighted_sampler, class_weights = get_weighted_sampler(train_path)
 
     # Return n batches, where each batch contain exp_dict['bs'] values. Each value has a tensor of features and its target value event(veranst) segment(from 0 to 2)
-    train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
+    # train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
+    train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], sampler=weighted_sampler)
 
-    train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
-    # train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], sampler=weighted_sampler)
+    # train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
+    train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], sampler=weighted_sampler)
     test_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=test_path), batch_size=exp_dict['bs'], shuffle=True)
    
 
@@ -262,8 +283,6 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
 
             train_epoch_loss += loss.item()
             train_epoch_acc += train_accuracy.item()
-            # wandb.sklearn.plot_learning_curve(intellizenz_net, data, target)
-
         
         # compute the training loss of the epoch
         train_loss = train_epoch_loss / len(train_loader)
@@ -286,7 +305,6 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
             test_accuracy, y_pred, y_probas = multi_acc(pred, target.to(device))
             test_epoch_acc += test_accuracy.item()
 
-            # wandb.sklearn.plot_learning_curve(intellizenz_net, data, target)
             y_pred_list.append(y_pred.cpu().tolist())
             y_true_list.append(target.cpu().tolist())
             y_probas_list.append(y_probas.cpu().detach().tolist())
@@ -362,6 +380,44 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
         # Update the RTPT
         rtpt.step()
 
+# Training the model with Whittle Einsum Network
+def whittle_einsum(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path):
+    #trainable params
+    # num_trainable_params = [sum(p.numel() for p in intellizenz_net.parameters() if p.requires_grad)]
+    # num_params = [sum(p.numel() for p in intellizenz_net.parameters())]
+
+    # print("training with {}({}) trainable params and {}({}) params in total".format(np.sum(num_trainable_params),num_trainable_params,np.sum(num_params),num_params))
+    
+    #metric lists
+    train_acc_list = [] #stores acc for train 
+    test_acc_list = []  #and test
+
+    startTime = time.time()
+
+    # 1. Load the train data 
+    train_data_df = pd.read_parquet(train_path)
+    features = column.features_v4 #238 features
+
+    train_data_df = train_data_df[features]
+    train_data_df = train_data_df.fillna(-1) # Fill the Empty NaN values in all the cells with -1
+
+    X = train_data_df.loc[:,~train_data_df.columns.isin(['veranst_segment','vg_inkasso'])] #236 features 
+    y = train_data_df['veranst_segment']
+    
+    print('Training:---------------------------------------------------------------')
+    intellizenz_net.train(x_in=X,y_in=y,stft_module=None,batch_size=exp_dict['bs'],epochs=exp_dict['epochs'])
+
+    # 2. Load the test data 
+    test_data_df = pd.read_parquet(test_path)
+
+    test_data_df = test_data_df[features]
+    test_data_df = test_data_df.fillna(-1) # Fill the Empty NaN values in all the cells with -1
+
+    test_X = test_data_df.loc[:,~test_data_df.columns.isin(['veranst_segment','vg_inkasso'])] #236 features 
+    test_y = test_data_df['veranst_segment']
+    print('Prediction:---------------------------------------------------------------')
+    intellizenz_net.predict(x_=test_X, y_=test_y, batch_size=exp_dict['bs'])
+
 def testNetwork(network, testLoader, ret_confusion=False):
         """
         Return a real number in [0,100] denoting accuracy
@@ -399,10 +455,6 @@ def multi_acc(y_pred, y_test):
     # y_pred_softmax = torch.log_softmax(y_pred, dim = 1)
     # _, y_pred_tags = torch.max(y_pred_softmax, dim = 1)    
     _, y_pred_tags = torch.max(y_pred, dim = 1)
-
-    # wandb.sklearn.plot_roc(y_test, y_pred_tags, ['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'])
-    # wandb.sklearn.plot_precision_recall(y_test, y_pred_tags, ['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'])
-    # wandb.sklearn.plot_confusion_matrix(y_test, y_pred_tags, ['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'])
 
     correct_pred = (y_pred_tags == y_test).float()
     acc = correct_pred.sum() / len(correct_pred)
