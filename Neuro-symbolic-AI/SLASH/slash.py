@@ -59,6 +59,10 @@ def replace_plus_minus_occurences(pi_prime):
     
     #replace found matches with asp compatible form for npp occuring in rules
     #example: digit(0,+A,-N1) -> digit(0,1,A,N1)
+    #here digit(0,1.. means pattern +- used in the rule 
+    #digit(0,2.. means  pattern -+ used in the rule
+    #digit(0,3.. -- used in the rule
+    #digit(0,4.. means  pattern -- used in the rule
     pi_prime = re.sub( pat_pm, r'\1(\2,1,\3,\4)', pi_prime)
     pi_prime = re.sub( pat_mp, r'\1(\2,2,\3,\4)', pi_prime)
     pi_prime = re.sub( pat_mm, r'\1(\2,3,\3,\4)', pi_prime)
@@ -193,6 +197,7 @@ class SLASH(object):
         # 3. 'atom': a list of list of atoms, where each list of atoms is corresponding to a prob. rule
         # 4. 'networkPrRuleNum': an integer denoting the number of probabilistic rules generated from network
         self.mvpp = {'networkProb': [], 'atom': [], 'networkPrRuleNum': 0, 'program': '','networkProbSinglePred':{}}
+        print('The mvpp is: ',self.mvpp)
         self.mvpp['program'], self.mvpp['program_pr'], self.mvpp['program_asp'], self.npp_operators = self.parse(query='')
         print('The network outputs: ',self.networkOutputs)
         self.stableModels = [] # a list of stable models, where each stable model is a list
@@ -316,16 +321,16 @@ class SLASH(object):
         pi_prime = mvpp.pi_prime
 
         # print('The program is: ',program)
-        #print("PI PRIME 1")
-        #print(pi_prime)
+        # print("PI PRIME 1")
+        # print(pi_prime)
 
         #2.4 parse +-Notation and add a const to flag the operation in the npp call
         pi_prime = pi_prime.replace(' ','').replace('#const','#const ')
         
         pi_prime, npp_operators = replace_plus_minus_occurences(pi_prime)
 
-        #print("PI PRIME 2")
-        #print(pi_prime)
+        # print("PI PRIME 2")
+        # print(pi_prime)
 
         #extend npps definitions with the operators found
         #example: npp(digit(1,X),(0,1,2,3,4,5,6,7,8,9)):-img(X). with a +- and -- call in the program 
@@ -333,6 +338,7 @@ class SLASH(object):
         pat_npp = r'(npp\()([a-z]*[a-zA-Z0-9_]*)(\([0-9]*,)([A-Z]*[a-zA-Z0-9_]*\),\(([a-z0-9]*,)*[a-z0-9]*\)\))(:-[a-z][a-zA-Z0-9_]*\([A-Z][a-zA-Z0-9_]*\))?.'
         pat_npp = r'(npp\()([a-z]*[a-zA-Z0-9_]*)(\([0-9]*,)([A-Z]*[a-zA-Z0-9_]*\),\((?:[a-z0-9]*,)*[a-z0-9]*\)\))(:-[a-z][a-zA-Z0-9_]*\([A-Z][a-zA-Z0-9_]*\))?.'
 
+        # print('NPP Operators: ', npp_operators)
 
         def npp_sub(match):
             npp_extended =""
@@ -341,14 +347,13 @@ class SLASH(object):
                         body = ""
                     else: 
                         body = match.group(5)
-                    npp_extended = '{}{}{}{},{}{}.\n'.format(match.group(1), match.group(2), match.group(3),o,match.group(4), body )+ npp_extended 
+                    npp_extended = '{}{}{}{},{}{}.\n'.format(match.group(1), match.group(2), match.group(3),o,match.group(4), body )+ npp_extended
             return npp_extended
 
         pi_prime = re.sub(pat_npp, npp_sub, pi_prime)
 
-
-        #print("PI PRIME 3")
-        #print(pi_prime)
+        # print("PI PRIME 3")
+        # print(pi_prime)
 
         # 2.5 use clingo to generate all grounded network atoms and turn them into prob. rules
         clingo_control.add("base", [], pi_prime)
@@ -359,7 +364,7 @@ class SLASH(object):
         #iterate over all NPP atoms and extract information for the MVPP program
         mvppRules = [self.networkAtom2MVPPrules(str(atom),npp_operators) for atom in symbols if (atom.name == 'npp')]
         mvppRules = [rule for rules in mvppRules for rule in rules]
-        
+
         # 3. obtain the ASP part in the original NeurASP program after +- replacements
         lines = [line.strip() for line in pi_prime.split('\n') if line and not re.match("^\s*npp\(", line)]
 
@@ -483,6 +488,8 @@ class SLASH(object):
             # rules: (':- not forest(p1,0). ', ':- not forest(p1,1).' and so on)
             print('Network types: ',self.networkTypes)
             for data_batch, query_batch in tqdm(dataset_loader):
+                print('The data batch size :',len(data_batch))
+                print('The query batch size :',len(query_batch))
                 start_time = time.time()
                            
                 # If we have marginalisation masks, than we have to pick one for the batch
@@ -795,6 +802,7 @@ class SLASH(object):
         #list to collect targets and predictions for confusion matrix
         y_target = []
         y_pred = []
+        probas = []
         with torch.no_grad():
             
             # features, labels = next(iter(testLoader))
@@ -804,9 +812,9 @@ class SLASH(object):
                 # data = features[i]
                 # target = labels[i]               
                 output = self.networkMapping[network](data.to(self.device))
+                probas.append(output.cpu().detach().tolist())
                 if len(self.n) != 0 and self.n[network] > 2 :
                     pred = output.argmax(dim=-1, keepdim=True) # get the index of the max log-probability
-                    print('The predictions: {} and n value: {}'.format(pred, self.n))
                     target = target.to(self.device).view_as(pred)
                     
                     correctionMatrix = (target.int() == pred.int()).view(target.shape[0], -1)
@@ -820,7 +828,6 @@ class SLASH(object):
                     singleTotal += target.numel()
                 else: 
                     pred = np.array([int(i[0]<0.5) for i in output.tolist()])
-                    print('The predictions: ',pred)
                     target = target.numpy()
                     
                     #y_target.append(target)
@@ -843,7 +850,7 @@ class SLASH(object):
             confusionMatrix = confusion_matrix(np.array(y_target), np.array(y_pred))
             return accuracy, singleAccuracy, confusionMatrix
 
-        return accuracy, singleAccuracy
+        return accuracy, singleAccuracy, y_pred, y_target, probas
     
     # We interprete the most probable stable model(s) as the prediction of the inference mode
     # and check the accuracy of the inference mode by checking whether the query is satisfied by the prediction

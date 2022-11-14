@@ -15,8 +15,8 @@ if sys.path.__contains__(column_path)==False:
     sys.path.append(column_path)
 
 import column
-from PWN.model.wein import WEin
-from PWN.model.wein.wein_config import WEinConfig
+# from PWN.model.wein import WEin
+# from PWN.model.wein.wein_config import WEinConfig
 
 # from einsum_wrapper import EiNet
 from network_nn import *
@@ -27,19 +27,71 @@ import pandas as pd
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-program ='''
-tab(t1).
-pred(p1).
-pred(p2). #--amount
+# We denote a given variable with + and the query variable with −
+# with the query: color_attr(+X, −C) one is asking for P (C|X).
+# with query: color_attr(-X, +C) for P (X|C).
+# color_attr(−X, −C),we are querying for P (X, C).
+#Events - 0 to 2 classes
 
-npp(vgsegment(1,T),[0,1,2]) :- tab(T).
-event(N,C) :- vgsegment(0,+T,-C), pred(N).
+# program ='''
+# tab(t1).
+# pred(p1).
+# pred(p2). #--amount
+
+# npp(vgsegment(1,T),[0,1,2]) :- tab(T).
+# event(N,C) :- vgsegment(0,+T,-C), pred(N).
+
+# '''
+
+# program ='''
+# tab(t1).
+# pred(p1).
+
+# npp(vgsegment(1,T),[0,1,2]) :- tab(T).
+# event(N,C) :- vgsegment(0,+T,-C), pred(N).
+
+# '''
+
+
+# Integrity constraint
+# Time series use
+# Option to perform regression is gone
+
+# If tarif u_st, one concert in dresden town square, rated as X tarif with some money.
+# Tarif u_v & tarif_u_st, events happening in same venue
+
+# Implicit information:
+# 10 events in same venues; they have all tarifs.
+
+# Category 4 - Tarif_ut; 
+# read pdf and verify if it depends on only size of venue
+
+# Program:
+# Extract location from event
+# Add constraint. if event satisfies the specific venue with specific size
+# Brackets are same for the event in same city
+
+
+# Do they think, if extension of slash to regression is possible?
+# vgsegment is the symbolic name of NN or Probabilistic circuit
+
+
+program ='''
+row(t1).
+
+npp(vgsegment(1,T),[0,1,2]) :- row(T).
+event(T,C) :- vgsegment(0,+T,-C).
 
 '''
 
+# 1 - each row(event) would have only one class from (0,1,2)
+# vgsegment(0) means- expects a gradient for the specific symbolic atom vgsegment
+
+
 # Query
-# :- not event(p1,1).
+# :- not event(t1,1).
 # Cardinality constraint, it is not the case, that the instance is not an event and it does not belong to class 1
+
 
 # :- event(p1,2).
 # :- event(p1,0).
@@ -74,7 +126,8 @@ def slash_intellizenz(exp_name, exp_dict):
     if exp_dict['credentials']=='SNN':   
         #Intellizenztype network
         # intellizenz_net = Net_nn(80) # 80 - number of features/columns
-        intellizenz_net = Simple_nn(236,3).model.to(device)
+        intellizenz_net = Net_nn(140)
+        # intellizenz_net = Simple_nn(236,3).model.to(device)
         slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path)
     elif exp_dict['credentials']=='PWN_ES':
         
@@ -117,6 +170,15 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, te
 
     startTime = time.time()
   
+    weighted_sampler, class_weights = get_weighted_sampler(train_path)
+
+    # Return n batches, where each batch contain exp_dict['bs'] values. Each value has a tensor of features and its target value event(veranst) segment(from 0 to 2)
+    # train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
+    train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], sampler=weighted_sampler)
+
+    # train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
+    train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], sampler=weighted_sampler)
+    test_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=test_path), batch_size=exp_dict['bs'], shuffle=True)
     
     start_e= 0
     if exp_dict['resume']:
@@ -132,18 +194,8 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, te
        
         #metrics
         train_acc_list = saved_model['train_acc_list']
-        test_acc_list = saved_model['test_acc_list']        
+        test_acc_list = saved_model['test_acc_list']  
 
-    
-    weighted_sampler, class_weights = get_weighted_sampler(train_path)
-
-    # Return n batches, where each batch contain exp_dict['bs'] values. Each value has a tensor of features and its target value event(veranst) segment(from 0 to 2)
-    # train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
-    train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], sampler=weighted_sampler)
-
-    # train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
-    train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], sampler=weighted_sampler)
-    test_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=test_path), batch_size=exp_dict['bs'], shuffle=True)
    
 
     for e in range(start_e, exp_dict['epochs']):
@@ -157,23 +209,39 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, te
         # Here 0 - veranstaltung(event) segment < 50 euros
         # 1 - veranstaltung(event) segment >50 euros and < 100 euros
         # 2 - veranstaltung(event) segment > 100 euros
-        SLASHobj.learn(dataset_loader = train_data_loader, epoch=1, batchSize=exp_dict['bs'],
+        total_loss = SLASHobj.learn(dataset_loader = train_data_loader, epoch=1, batchSize=exp_dict['bs'],
                               p_num=exp_dict['p_num'], use_em=exp_dict['use_em'])
         
         #TEST
         time_test = time.time()
 
         # To see gradients of the weights as histograms in the 
-        wandb.watch(intellizenz_net)
+        # wandb.watch(intellizenz_net)
 
         #test accuracy
-        train_acc, _, = SLASHobj.testNetwork('vgsegment', train_loader, ret_confusion=False)
-        test_acc, _, = SLASHobj.testNetwork('vgsegment', test_loader, ret_confusion=False)
+        train_acc, _, _, _, _ = SLASHobj.testNetwork('vgsegment', train_loader, ret_confusion=False)
+        test_acc, _, preds, targets, probas = SLASHobj.testNetwork('vgsegment', test_loader, ret_confusion=False)
 
         print("Test Accuracy:",test_acc)
         print("Train Accuracy:",train_acc)
         train_acc_list.append(train_acc)
         test_acc_list.append(test_acc)
+
+        # 3d array to 2d array
+        flatten_list_two_dim = lambda y:[x for a in y for x in a] if type(y) is list else [y]
+        probas = flatten_list_two_dim(probas)
+
+        # wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
+        #                     preds=preds, y_true=targets,
+        #                     class_names=[0, 1, 2])})
+        # wandb.log({"pr" : wandb.plot.pr_curve(y_true=targets, y_probas=probas,
+        #              labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        # wandb.log({"roc" : wandb.plot.roc_curve(y_true=targets, y_probas=probas,
+        #                 labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        
+        # wandb.log({"train_loss": total_loss, 
+        #             "train_accuracy": train_acc,
+        #             "test_accuracy": test_acc})
         
         timestamp_train = utils.time_delta_now(time_train)
         timestamp_test = utils.time_delta_now(time_test)
