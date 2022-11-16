@@ -140,11 +140,13 @@ class Intellizenz_Test(Dataset):
 
 data_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v3.parquet.gzip'
 df = pd.read_parquet(data_path)
+df = df[:500]
 
 # u_st_nl_df = df.loc[df['tarif_bez']=='U-ST I (MUSIKER) NL']
 
 train_df, test_df = train_test_split(df, test_size=0.2, random_state=1)
 weighted_sampler, class_weights = get_weighted_sampler(train_df)
+test_weighted_sampler, test_class_weights = get_weighted_sampler(test_df)
 
 # Return n batches, where each batch contain batch_size values. Each value has a tensor of features 
 # and its target value event(veranst) segment(from 0 to 2)
@@ -153,7 +155,8 @@ train_loader = torch.utils.data.DataLoader(Intellizenz(data_df=train_df), batch_
 # only randomly take 30000 data
 np.random.seed(1) # fix the random seed for reproducibility
 # train_loader = torch.utils.data.Subset(train_loader, np.random.choice(len(train_loader), 21778, replace=False))
-test_loader = torch.utils.data.DataLoader(Intellizenz(data_df=test_df), batch_size=64, shuffle=True)
+# test_loader = torch.utils.data.DataLoader(Intellizenz(data_df=test_df), batch_size=64, shuffle=True)
+test_loader = torch.utils.data.DataLoader(Intellizenz(data_df=test_df), batch_size=64, sampler=test_weighted_sampler)
 
 # tarif = 'U-ST I (MUSIKER) NL' in trainloader(from 1.3M data) - 18094 - less frequency than actual cause of weighted_sampler
 # tarif = 'U-ST I (MUSIKER) NL' in testloader - 5662
@@ -175,15 +178,15 @@ for data_batch, label_batch, tarif_batch in train_loader:
             queryList.append(query)
 
 
-program ='''
-row(t1).
-tarif(ta1).
+# program ='''
+# row(t1).
+# tarif(ta1).
 
-:- event(T,C), ta1="U-ST I (MUSIKER) NL", C=0 .
-:- event(T,C), ta1="U-ST I (MUSIKER) NL", C=1 . 
+# :- event(T,C), tarif(TA), TA="U-ST I (MUSIKER) NL", C=0 .
+# :- event(T,C), tarif(TA), TA="U-ST I (MUSIKER) NL", C=1 . 
 
-nn(vgsegment(1,T),[0,1,2]) :- row(T).
-event(T,C) :- vgsegment(0,T,C). '''
+# nn(vgsegment(1,T),[0,1,2]) :- row(T).
+# event(T,C) :- vgsegment(0,T,C). '''
 
     
 

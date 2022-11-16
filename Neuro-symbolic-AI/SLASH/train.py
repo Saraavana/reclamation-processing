@@ -8,6 +8,8 @@ import torch
 import time
 import numpy as np
 import utils
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 import os, sys; 
 column_path = os.path.dirname(os.path.realpath('C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/column.py'))
@@ -39,7 +41,27 @@ row(t1).
 npp(vgsegment(1,T),[0,1,2]) :- row(T).
 event(T,C) :- vgsegment(0,+T,-C).
 
+:- event(T,C), tarif(TA), TA=44, C=1 .
+:- event(T,C), tarif(TA), TA=44, C=0 .
 '''
+
+# tarif(ta1).
+# :- event(T,C), tarif(TA), TA="U-ST I (MUSIKER) NL", C=1 .
+# :- event(T,C), tarif(TA), TA="U-ST I (MUSIKER) NL", C=0 .
+
+# :- event(T,C), ta1="U-ST I (MUSIKER) NL", C=0 .
+# :- event(T,C), ta1="U-ST I (MUSIKER) NL", C=1 .
+
+# tarif(t1, ta)
+# :- tarif(T, TA), event(T,C), TA="U-ST I (MUSIKER) NL", C="CLASS2" # Integrity constraint
+# event(T,"CLASS 2"):- tarif(T, TA), event(T,C), TA="U-ST I (MUSIKER) NL"
+
+# :- tarif(t1, ta1), event(T,C), ta1="U-ST I (MUSIKER) NL", C=0 .
+# :- tarif(t1, ta1), event(T,C), ta1="U-ST I (MUSIKER) NL", C=1 . 
+
+# Tarifs are categorical, hence the column was encoded using LabelEncoder
+# 58 corresponds to 'U-ST I (MUSIKER) NL' tarif
+# 58 - U-ST I (MUSIKER) NL
 
 # Query
 # :- not event(t1,1).
@@ -59,15 +81,33 @@ def slash_intellizenz(exp_name, exp_dict):
 
     print("Experiment parameters:", exp_dict)
 
-    # wandb.init(project="Intellizenz", entity="elsaravana")
-    # wandb.config = {
-    #     "learning_rate": exp_dict['lr'],
-    #     "epochs": exp_dict['epochs'],
-    #     "batch_size": exp_dict['bs']
-    # }
+    wandb.init(project="Intellizenz", entity="elsaravana")
+    wandb.config = {
+        "learning_rate": exp_dict['lr'],
+        "epochs": exp_dict['epochs'],
+        "batch_size": exp_dict['bs']
+    }
 
     train_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_training_features_2016_2020_v1.parquet.gzip' 
     test_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_testing_features_2016_2020_v1.parquet.gzip'
+
+    data_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v3.parquet.gzip'
+    df = pd.read_parquet(data_path)
+
+    df = df[:500000]
+
+    le = LabelEncoder()
+    df['tarif_bez'] = le.fit_transform(df['tarif_bez'])
+
+    all_tarifs_le = [e for e in df['tarif_bez']]
+    
+    tarif_classes=le.inverse_transform(all_tarifs_le).tolist()
+    indexOfTheTarif = tarif_classes.index('U-ST I (MUSIKER) NL')
+    print('The index is: ',indexOfTheTarif)
+    print('The label encoded value is: ',all_tarifs_le[indexOfTheTarif])
+
+
+    train_df, test_df = train_test_split(df, test_size=0.2, random_state=1)
 
     #NETWORKS
     if exp_dict['credentials']=='SNN':   
@@ -75,7 +115,7 @@ def slash_intellizenz(exp_name, exp_dict):
         # intellizenz_net = Net_nn(80) # 80 - number of features/columns
         intellizenz_net = Net_nn(140)
         # intellizenz_net = Simple_nn(236,3).model.to(device)
-        slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path)
+        slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_df, test_df)
     elif exp_dict['credentials']=='PWN_ES':
         
         # PWN(config, config_c, train_spn_on_gt=False, train_spn_on_prediction=True, train_rnn_w_ll=False,
@@ -86,11 +126,11 @@ def slash_intellizenz(exp_name, exp_dict):
     else:
         # intellizenz_net = Simple_nn(236,3).model.to(device)
         intellizenz_net = MulticlassClassification(236,3).to(device)
-        simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path)
+        simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_df, test_df)
 
     
 # Training the model with SLASH + Neural Network
-def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path):
+def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_df, test_df):
     #trainable params
     num_trainable_params = [sum(p.numel() for p in intellizenz_net.parameters() if p.requires_grad)]
     num_params = [sum(p.numel() for p in intellizenz_net.parameters())]
@@ -115,17 +155,19 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, te
     train_acc_list = [] #stores acc for train 
     test_acc_list = []  #and test
 
+    weighted_sampler, class_weights = get_weighted_sampler(train_df)
+    test_weighted_sampler, test_class_weights = get_weighted_sampler(test_df)
+
     startTime = time.time()
-  
-    weighted_sampler, class_weights = get_weighted_sampler(train_path)
 
     # Return n batches, where each batch contain exp_dict['bs'] values. Each value has a tensor of features and its target value event(veranst) segment(from 0 to 2)
     # train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
-    train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], sampler=weighted_sampler)
+    train_data_loader = torch.utils.data.DataLoader(Intellizenz(df=train_df), batch_size=exp_dict['bs'], sampler=weighted_sampler)
 
     # train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
-    train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], sampler=weighted_sampler)
-    test_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=test_path), batch_size=exp_dict['bs'], shuffle=True)
+    train_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=train_df), batch_size=exp_dict['bs'], sampler=weighted_sampler)
+    # test_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=test_df), batch_size=exp_dict['bs'], shuffle=True)
+    test_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=test_df), batch_size=exp_dict['bs'], sampler=test_weighted_sampler)
     
     start_e= 0
     if exp_dict['resume']:
@@ -178,17 +220,17 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, te
         flatten_list_two_dim = lambda y:[x for a in y for x in a] if type(y) is list else [y]
         probas = flatten_list_two_dim(probas)
 
-        # wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
-        #                     preds=preds, y_true=targets,
-        #                     class_names=[0, 1, 2])})
-        # wandb.log({"pr" : wandb.plot.pr_curve(y_true=targets, y_probas=probas,
-        #              labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
-        # wandb.log({"roc" : wandb.plot.roc_curve(y_true=targets, y_probas=probas,
-        #                 labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
+                            preds=preds, y_true=targets,
+                            class_names=[0, 1, 2])})
+        wandb.log({"pr" : wandb.plot.pr_curve(y_true=targets, y_probas=probas,
+                     labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        wandb.log({"roc" : wandb.plot.roc_curve(y_true=targets, y_probas=probas,
+                        labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
         
-        # wandb.log({"train_loss": total_loss, 
-        #             "train_accuracy": train_acc,
-        #             "test_accuracy": test_acc})
+        wandb.log({"train_loss": total_loss, 
+                    "train_accuracy": train_acc,
+                    "test_accuracy": test_acc})
         
         timestamp_train = utils.time_delta_now(time_train)
         timestamp_test = utils.time_delta_now(time_test)
@@ -217,7 +259,7 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, te
         rtpt.step()
 
 # Training the model with only simple Neural Network
-def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_path):
+def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_df, test_df):
     #trainable params
     num_trainable_params = [sum(p.numel() for p in intellizenz_net.parameters() if p.requires_grad)]
     num_params = [sum(p.numel() for p in intellizenz_net.parameters())]
@@ -255,8 +297,8 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_path, test_p
 
     # train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
     weighted_sampler, class_weights = get_weighted_sampler(train_path)
-    train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], sampler=weighted_sampler)
-    test_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=test_path), batch_size=exp_dict['bs'], shuffle=True)
+    train_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=train_df), batch_size=exp_dict['bs'], sampler=weighted_sampler)
+    test_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=test_df), batch_size=exp_dict['bs'], shuffle=True)
    
     loss_fn = torch.nn.CrossEntropyLoss(weight=class_weights.to(device))
     # loss_fn = torch.nn.BCELoss()
@@ -499,13 +541,13 @@ def get_class_distribution(obj):
             
     return count_dict
 
-def get_all_target_data(path): 
-    data_df = pd.read_parquet(path) 
-    y = data_df['veranst_segment']
+def get_all_target_data(df): 
+    # data_df = pd.read_parquet(path) 
+    y = df['veranst_segment']
     return y
 
-def get_weighted_sampler(path):
-    y = get_all_target_data(path)
+def get_weighted_sampler(df):
+    y = get_all_target_data(df)
     
     # we obtain a tensor of all target values in the training data
     target_list = []

@@ -488,8 +488,6 @@ class SLASH(object):
             # rules: (':- not forest(p1,0). ', ':- not forest(p1,1).' and so on)
             print('Network types: ',self.networkTypes)
             for data_batch, query_batch in tqdm(dataset_loader):
-                print('The data batch size :',len(data_batch))
-                print('The query batch size :',len(query_batch))
                 start_time = time.time()
                            
                 # If we have marginalisation masks, than we have to pick one for the batch
@@ -527,7 +525,7 @@ class SLASH(object):
                 # print('----------------')
                 data_batch_keys = list(data_batch.keys())
                 for key in data_batch_keys:
-                    #print(key, self.constReplacement(key))
+                    # print(key, self.constReplacement(key))
                     data_batch[self.constReplacement(key)] = data_batch.pop(key)
                             
                 
@@ -554,14 +552,12 @@ class SLASH(object):
                         if self.networkTypes[m] == 'npp':
                             for t in self.networkOutputs[m][o]: # t = t1 or i1 or i2
 
-
+                                # data_batch = {'t1': tensor, 'ta1': []}
                                 dataTensor = data_batch[t]
-
                                 
                                 #we have a list of data elements but want a Tensor of the form [batchsize,...]
                                 if isinstance(dataTensor, list):
                                     dataTensor = torch.stack(dataTensor).squeeze(dim=1)
-
 
 
                                 if m == 'color_abl':
@@ -581,7 +577,7 @@ class SLASH(object):
                                         ablation_output = self.networkMapping[m].forward(dataTensor.to(self.device))
                                     networkOutput[m][o][t] = ablation_output[:,16:19]
                                     
-                                else: 
+                                else:
                                     networkOutput[m][o][t] = self.networkMapping[m].forward(
                                                                                     dataTensor.to(self.device),
                                                                                     marg_idx=marg_mask,

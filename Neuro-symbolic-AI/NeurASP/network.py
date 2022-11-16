@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import numpy as np
 
 class Net(nn.Module):
     def __init__(self, n_features, output_dim):
@@ -38,9 +39,15 @@ def testNN(model, testLoader, device):
     # check if each single prediction is correct
     singleCorrect = 0
     singleTotal = 0
+
+    #list to collect targets and predictions for confusion matrix
+    y_target = []
+    y_pred = []
+    probas = []
     with torch.no_grad():
         for data, target, _ in testLoader:
             output = model(data.to(device))
+            probas.append(output.cpu().detach().tolist())
             if target.shape == output.shape[:-1]:
                 pred = output.argmax(dim=-1) # get the index of the max value
             elif target.shape == output.shape:
@@ -50,6 +57,10 @@ def testNN(model, testLoader, device):
                 import sys
                 sys.exit()
             target = target.to(device).view_as(pred)
+
+            y_target = np.concatenate( (y_target, target.int().flatten().cpu() ))
+            y_pred = np.concatenate( (y_pred , pred.int().flatten().cpu()) )
+
             correctionMatrix = (target.int() == pred.int()).view(target.shape[0], -1)
             correct += correctionMatrix.all(1).sum().item()
             total += target.shape[0]
@@ -57,4 +68,5 @@ def testNN(model, testLoader, device):
             singleTotal += target.numel()
     accuracy = 100. * correct / total
     singleAccuracy = 100. * singleCorrect / singleTotal
-    return accuracy, singleAccuracy
+
+    return accuracy, singleAccuracy, y_target, y_pred, probas

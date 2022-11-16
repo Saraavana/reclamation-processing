@@ -10,7 +10,7 @@ date_string = datetime.datetime.today().strftime('%d-%m-%Y')
 #               'explanation': """Intellizenz experiment using WMC for a simple classification."""}}
 
 experiments = {'slash-with-nn': 
-                   {'lr': 0.01, 'bs':4096, 'epochs':500, 'use_em':False,
+                   {'lr': 0.00001, 'bs':64, 'epochs':20, 'use_em':False,
                     'start_date':date_string, 'resume':False, 'p_num':6, 'credentials':'SNN'}}
 
 # experiments = {'simple-nn': 

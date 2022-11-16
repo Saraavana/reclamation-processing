@@ -11,75 +11,63 @@ if sys.path.__contains__(column_path)==False:
 import column
 
 class Intellizenz(Dataset):
-    def __init__(self, path):
-        self.path = path
-
+    def __init__(self, df):
         # 1. Load the data 
-        data_df = pd.read_parquet(path)
+        # data_df = pd.read_parquet(path)
+        data_df = df
 
-        features = column.features_v3 #142 features
+        features = column.features_v5 #143 features
+        # features = column.features_v3 #142 features
         # features = column.features_v4 #238 features
 
         data_df = data_df[features]
 
         data_df = data_df.fillna(-1) # Fill the Empty NaN values in all the cells with -1
 
-        X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso'])] # 152 features
-        # X = data_df.loc[:,~data_df.columns.isin(sfdfs)] # 152 features
+        X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso','tarif_bez'])] # 140 features
         y = data_df['veranst_segment']
+        tarif = data_df['tarif_bez']
 
-        # Encode categorical labels
-        # l_enc = LabelEncoder()
-        # X['vg_datum_year'] = l_enc.fit_transform(X['vg_datum_year'])
-
-        # def fillmissing(df, feature):
-        #     df[feature] = df[feature].fillna(0)
-                
-
-        # features_missing= X.columns[X.isna().any()]
-        # for feature in features_missing:
-        #     fillmissing(X, feature= feature)
-        
-        # X.info()
-        # y = l_enc.fit_transform(y)
-
-        self.X = torch.Tensor(X.values) #dimension: [n, 152]
+        self.X = torch.Tensor(X.values) #dimension: [n, 140]
         self.y = torch.Tensor(y.values) #dimension: [n]
+        
+        tarif_values = []
+        for each in tarif.values:
+            tarif_values.append(each)
+
+        self.tarif = tarif_values #dimension: [n]
 
     def __len__(self):
         return len(self.y)
 
     def __getitem__(self, index):
-        # print('Index is: ',index)
-        dataTensor = self.X[index]
-        # query = ":- not event(p1,{}). ".format(int(self.y[index]))
-        query = ":- not event(t1,{}). ".format(int(self.y[index]))
-        return {'t1':dataTensor}, query
+        dataTensor = self.X[index].unsqueeze(0) #dataTensor shape would be [1, 140]
+        # data = {'t1':dataTensor, 'ta1':self.tarif[index]}
+        data = {'t1':dataTensor}
+        # query = ":- not event(t1,{}). ".format(int(self.y[index]))
+        # query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),str(self.tarif[index]).replace(" ","").lower())
+        query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),self.tarif[index])
+        return data, query
 
 
 class Intellizenz_Data(Dataset):
-    def __init__(self, path):
-        self.path = path
-
+    def __init__(self, df):
         # 1. Load the data 
-        data_df = pd.read_parquet(path)
+        # data_df = pd.read_parquet(path)
+        data_df = df
 
-        features = column.features_v3 #142 features 
+        features = column.features_v5 #143 features
+        # features = column.features_v3 #142 features 
         # features = column.features_v4 #238 features
 
         data_df = data_df[features]
 
         data_df = data_df.fillna(-1) # Fill the Empty NaN values in all the cells with -1
 
-        X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso'])] #236 features 
+        X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso', 'tarif_bez'])] #140 features 
         y = data_df['veranst_segment']
 
-        # Encode categorical labels
-        # l_enc = LabelEncoder()
-        # X['vg_datum_year'] = l_enc.fit_transform(X['vg_datum_year'])
-
-        # y = l_enc.fit_transform(y)
-        self.X = torch.Tensor(X.values) #dimension: [n, 236]
+        self.X = torch.Tensor(X.values) #dimension: [n, 140]
         self.y = torch.Tensor(y.values) #dimension: [n]
                     
     def __getitem__(self, index):
