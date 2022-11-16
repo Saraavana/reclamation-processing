@@ -33,49 +33,6 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # color_attr(−X, −C),we are querying for P (X, C).
 #Events - 0 to 2 classes
 
-# program ='''
-# tab(t1).
-# pred(p1).
-# pred(p2). #--amount
-
-# npp(vgsegment(1,T),[0,1,2]) :- tab(T).
-# event(N,C) :- vgsegment(0,+T,-C), pred(N).
-
-# '''
-
-# program ='''
-# tab(t1).
-# pred(p1).
-
-# npp(vgsegment(1,T),[0,1,2]) :- tab(T).
-# event(N,C) :- vgsegment(0,+T,-C), pred(N).
-
-# '''
-
-
-# Integrity constraint
-# Time series use
-# Option to perform regression is gone
-
-# If tarif u_st, one concert in dresden town square, rated as X tarif with some money.
-# Tarif u_v & tarif_u_st, events happening in same venue
-
-# Implicit information:
-# 10 events in same venues; they have all tarifs.
-
-# Category 4 - Tarif_ut; 
-# read pdf and verify if it depends on only size of venue
-
-# Program:
-# Extract location from event
-# Add constraint. if event satisfies the specific venue with specific size
-# Brackets are same for the event in same city
-
-
-# Do they think, if extension of slash to regression is possible?
-# vgsegment is the symbolic name of NN or Probabilistic circuit
-
-
 program ='''
 row(t1).
 
@@ -84,21 +41,11 @@ event(T,C) :- vgsegment(0,+T,-C).
 
 '''
 
-# 1 - each row(event) would have only one class from (0,1,2)
-# vgsegment(0) means- expects a gradient for the specific symbolic atom vgsegment
-
-
 # Query
 # :- not event(t1,1).
-# Cardinality constraint, it is not the case, that the instance is not an event and it does not belong to class 1
+# Constraint, it is not the case, that the instance is not an event and it does not belong to class 1
 
 
-# :- event(p1,2).
-# :- event(p1,0).
-
-# Maybe, events with 3 parameters, with id, category, estimated cost of the event. 
-# constraint can be, it is not possible, 
-# :-not event(eventId=32,cat=1,cost>cost cat 1)
 
 def slash_intellizenz(exp_name, exp_dict):
     # Create RTPT object

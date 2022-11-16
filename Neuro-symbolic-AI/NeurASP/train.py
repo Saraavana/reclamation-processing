@@ -12,11 +12,28 @@ start_time = time.time()
 #############################
 program ='''
 row(t1).
+tarif(ta1).
+
+:- event(T,C), ta1="U-ST I (MUSIKER) NL", C=0 .
+:- event(T,C), ta1="U-ST I (MUSIKER) NL", C=1 . 
 
 nn(vgsegment(1,T),[0,1,2]) :- row(T).
 event(T,C) :- vgsegment(0,T,C).
 
 '''
+# % neural rule nn(..
+# Integrity constraint is, it is not the case that an event with tarif(ta1) could belong to class 0 or class 1
+
+# get the tarif from row(t1)
+# get the state from row(t1)
+# tarif in row(t1) is always greater than 2
+
+# tarif(t1, ta)
+# :- tarif(T, TA), event(T,C), TA="U-ST I (MUSIKER) NL", C="CLASS2" # Integrity constraint
+# event(T,"CLASS 2"):- tarif(T, TA), event(T,C), TA="U-ST I (MUSIKER) NL"
+
+# :- tarif(t1, ta1), event(T,C), ta1="U-ST I (MUSIKER) NL", C=0 .
+# :- tarif(t1, ta1), event(T,C), ta1="U-ST I (MUSIKER) NL", C=1 . 
 
 ########
 # Define nnMapping and optimizers, initialze NeurASP object
@@ -24,9 +41,13 @@ event(T,C) :- vgsegment(0,T,C).
 m = Net(n_features=140,output_dim=3)
 nnMapping = {'vgsegment': m}
 #optimizers and learning rate scheduling
-optimizer = {'vgsegment': torch.optim.Adam(m.parameters(), lr=0.001)}
-NeurASPobj = NeurASP(program, nnMapping, optimizer)
-
+optimizers = {'intellizenz': torch.optim.Adam([
+                                            {'params':m.parameters()}],
+                                            lr=0.001)}
+# optimizer = {'vgsegment': torch.optim.Adam(([
+                                            # {'params':m.parameters()}]), lr=0.001)}
+NeurASPobj = NeurASP(program, nnMapping, optimizers)
+print(optimizers)
 
 
 ########
@@ -46,14 +67,14 @@ time_array = [current_time, start_time]
 saveModelPath = './Neuro-symbolic-AI/NeurASP/data/'+'1_epoch'+'/slash_models.pt'
 Path("./Neuro-symbolic-AI/SLASH/data/"+'1_epoch'+"/").mkdir(parents=True, exist_ok=True)
 
-print('Storing the trained model into {}'.format(saveModelPath))
-torch.save({"intellizenz_net":  m.state_dict(), 
-            "resume": {
-                "optimizer_intellizenz":optimizer.state_dict(),
-                "epoch":1
-            },
-            "num_params": m.parameters(),
-            "time": time_array}, saveModelPath)
+# print('Storing the trained model into {}'.format(saveModelPath))
+# torch.save({"intellizenz_net":  m.state_dict(), 
+#             "resume": {
+#                 # "optimizer_intellizenz":optimizers.state_dict(),
+#                 "epoch":1
+#             },
+#             "num_params": m.parameters(),
+#             "time": time_array}, saveModelPath)
 
 # check testing accuracy
 accuracy, singleAccuracy = testNN(model=m, testLoader=test_loader, device=device)

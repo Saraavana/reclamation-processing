@@ -39,7 +39,7 @@ def testNN(model, testLoader, device):
     singleCorrect = 0
     singleTotal = 0
     with torch.no_grad():
-        for data, target in testLoader:
+        for data, target, _ in testLoader:
             output = model(data.to(device))
             if target.shape == output.shape[:-1]:
                 pred = output.argmax(dim=-1) # get the index of the max value
