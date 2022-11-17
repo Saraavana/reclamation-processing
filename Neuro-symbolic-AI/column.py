@@ -1,3 +1,5 @@
+data_path_2016_2020_v3 = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v3.parquet.gzip'
+
 features_v1 = [
             'place_kirche', 'place_hotel', 'place_cafe',
             'place_theater', 'place_club', 'place_halle',

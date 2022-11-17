@@ -576,7 +576,8 @@ class SLASH(object):
                                     if ablation_output is None:
                                         ablation_output = self.networkMapping[m].forward(dataTensor.to(self.device))
                                     networkOutput[m][o][t] = ablation_output[:,16:19]
-                                    
+                                elif m == 'tabnet_vgsegment':
+                                    networkOutput[m][o][t] = self.networkMapping[m].forward(dataTensor.to(self.device))    
                                 else:
                                     networkOutput[m][o][t] = self.networkMapping[m].forward(
                                                                                     dataTensor.to(self.device),

@@ -178,4 +178,53 @@ def export_results(test_accuracy_list, train_accuracy_list,
         writer.add_scalar('Accuracy/train', train_acc_elem[0], train_acc_elem[1])
         writer.add_scalar('Accuracy/test', test_acc_elem[0], test_acc_elem[1])
 
+
+# Estimate the distribution(frequency/count) of each class(veranst_segment-0,1,2)
+def get_class_distribution(obj):
+    count_dict = {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+    }
+    
+    for i in obj:
+        if i == 0: 
+            count_dict['0'] += 1
+        elif i == 1: 
+            count_dict['1'] += 1
+        elif i == 2: 
+            count_dict['2'] += 1            
+        else:
+            print("Check classes.")
+            
+    return count_dict
+
+def get_all_target_data(df): 
+    # data_df = pd.read_parquet(path) 
+    y = df['veranst_segment']
+    return y
+
+def get_weighted_sampler(df):
+    y = get_all_target_data(df)
+    
+    # we obtain a tensor of all target values in the training data
+    target_list = []
+    for target in y.values:
+        target_list.append(target)
+
+    target_list = torch.tensor(target_list) 
+
+    # Calculate the weight of each class(veranst_segment=0/1/2) in the training data
+    class_count = [i for i in get_class_distribution(y).values()]
+    class_weights = 1./torch.tensor(class_count, dtype=torch.float) 
+
+    # To address class imbalance: WeightedRandomSampler is used to ensure that each mini batch contains samples from all the classes
+    # WeightedRandomSampler expects a weight for each sample. We do that using as follows.
+    class_weights_all = class_weights[target_list]
+
+    weighted_sampler = torch.utils.data.WeightedRandomSampler(weights=class_weights_all, 
+                                                                num_samples=len(class_weights_all),
+                                                                replacement=True)
+
+    return weighted_sampler, class_weights
         

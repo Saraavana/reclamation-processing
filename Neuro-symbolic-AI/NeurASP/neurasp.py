@@ -11,6 +11,9 @@ from tqdm import tqdm
 
 from mvpp import MVPP
 
+from dataGen import test_loader, train_loader
+from network import testNN
+import wandb
 
 class NeurASP(object):
     def __init__(self, dprogram, nnMapping, optimizers, gpu=False):
@@ -260,6 +263,13 @@ class NeurASP(object):
         else:
             dmvpp = MVPP(self.mvpp['program'])
 
+        #Initialize weights and biases
+        wandb.init(project="Intellizenz", entity="elsaravana")
+        wandb.config = {
+                "learning_rate": 0.001,
+                "epochs": 1
+        }
+
         # we train all nerual network models
         for m in self.nnMapping:
             self.nnMapping[m].train()
@@ -394,6 +404,30 @@ class NeurASP(object):
                 with open(smPickle, 'wb') as fp:
                     pickle.dump(self.stableModels, fp)
                 savePickle = False
+
+            #Logging metrics
+            # check testing accuracy
+            m = self.nnMapping['vgsegment'] #model
+            accuracy, singleAccuracy, y_target, y_pred, probas = testNN(model=m, testLoader=test_loader, device=self.device)
+            # check training accuracy
+            accuracyTrain, singleAccuracyTrain, _, _, _ = testNN(model=m, testLoader=train_loader, device=self.device)
+
+            probas = [x for sublist in probas for x in sublist] # probas dim-(n_samples, n_classes)
+
+            wandb.log({"train_accuracy": accuracyTrain,
+                        "test_accuracy": accuracy})
+
+
+            wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
+                            preds=y_pred, y_true=y_target,
+                            class_names=[0, 1, 2])})
+            wandb.log({"pr" : wandb.plot.pr_curve(y_true=y_target, y_probas=probas,
+                            labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+            wandb.log({"roc" : wandb.plot.roc_curve(y_true=y_target, y_probas=probas,
+                            labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+
+            print(f'{accuracyTrain:0.2f}\t{accuracy:0.2f}')
+
 
     def testNN(self, nn, testLoader):
         """

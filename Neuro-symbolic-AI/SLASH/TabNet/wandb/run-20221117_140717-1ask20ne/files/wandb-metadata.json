@@ -1,0 +1,49 @@
+{
+    "os": "Windows-10-10.0.19041-SP0",
+    "python": "3.9.13",
+    "heartbeatAt": "2022-11-17T13:07:17.776200",
+    "startedAt": "2022-11-17T13:07:17.021757",
+    "docker": null,
+    "cuda": null,
+    "args": null,
+    "state": "running",
+    "program": "<python with no main file>",
+    "git": {
+        "remote": "https://github.com/cloudIT4IPM/intellizenz-model-training.git",
+        "commit": "943a0b83603cedb5e3b247e89dd7b2c8755d8316"
+    },
+    "email": "sgopalakrish@it4ipm.de",
+    "root": "C:/Users/sgopalakrish/Downloads/intellizenz-model-training",
+    "host": "PCML1090",
+    "username": "sgopalakrish",
+    "executable": "c:\\Users\\sgopalakrish\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\intellizenz-model-training-LRwJb8pv-py3.9\\Scripts\\python.exe",
+    "cpu_count": 8,
+    "cpu_count_logical": 16,
+    "cpu_freq": {
+        "current": 3301.0,
+        "min": 0.0,
+        "max": 3301.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3301.0,
+            "min": 0.0,
+            "max": 3301.0
+        }
+    ],
+    "disk": {
+        "total": 953.6455039978027,
+        "used": 395.86132049560547
+    },
+    "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+            "memory_total": 6442450944
+        }
+    ],
+    "memory": {
+        "total": 31.36571502685547
+    }
+}

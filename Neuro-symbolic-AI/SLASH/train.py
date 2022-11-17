@@ -81,12 +81,12 @@ def slash_intellizenz(exp_name, exp_dict):
 
     print("Experiment parameters:", exp_dict)
 
-    wandb.init(project="Intellizenz", entity="elsaravana")
-    wandb.config = {
-        "learning_rate": exp_dict['lr'],
-        "epochs": exp_dict['epochs'],
-        "batch_size": exp_dict['bs']
-    }
+    # wandb.init(project="Intellizenz", entity="elsaravana")
+    # wandb.config = {
+    #     "learning_rate": exp_dict['lr'],
+    #     "epochs": exp_dict['epochs'],
+    #     "batch_size": exp_dict['bs']
+    # }
 
     train_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_training_features_2016_2020_v1.parquet.gzip' 
     test_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_testing_features_2016_2020_v1.parquet.gzip'
@@ -155,14 +155,15 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_df, test
     train_acc_list = [] #stores acc for train 
     test_acc_list = []  #and test
 
-    weighted_sampler, class_weights = get_weighted_sampler(train_df)
-    test_weighted_sampler, test_class_weights = get_weighted_sampler(test_df)
+    weighted_sampler, class_weights = utils.get_weighted_sampler(train_df)
+    test_weighted_sampler, test_class_weights = utils.get_weighted_sampler(test_df)
 
     startTime = time.time()
 
     # Return n batches, where each batch contain exp_dict['bs'] values. Each value has a tensor of features and its target value event(veranst) segment(from 0 to 2)
     # train_data_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
-    train_data_loader = torch.utils.data.DataLoader(Intellizenz(df=train_df), batch_size=exp_dict['bs'], sampler=weighted_sampler)
+    # train_data_loader = torch.utils.data.DataLoader(Intellizenz(df=train_df), batch_size=exp_dict['bs'], sampler=weighted_sampler)
+    train_data_loader = torch.utils.data.DataLoader(Intellizenz(df=train_df), sampler=weighted_sampler)
 
     # train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
     train_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=train_df), batch_size=exp_dict['bs'], sampler=weighted_sampler)
@@ -220,17 +221,17 @@ def slash_with_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_df, test
         flatten_list_two_dim = lambda y:[x for a in y for x in a] if type(y) is list else [y]
         probas = flatten_list_two_dim(probas)
 
-        wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
-                            preds=preds, y_true=targets,
-                            class_names=[0, 1, 2])})
-        wandb.log({"pr" : wandb.plot.pr_curve(y_true=targets, y_probas=probas,
-                     labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
-        wandb.log({"roc" : wandb.plot.roc_curve(y_true=targets, y_probas=probas,
-                        labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        # wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
+        #                     preds=preds, y_true=targets,
+        #                     class_names=[0, 1, 2])})
+        # wandb.log({"pr" : wandb.plot.pr_curve(y_true=targets, y_probas=probas,
+        #              labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        # wandb.log({"roc" : wandb.plot.roc_curve(y_true=targets, y_probas=probas,
+        #                 labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
         
-        wandb.log({"train_loss": total_loss, 
-                    "train_accuracy": train_acc,
-                    "test_accuracy": test_acc})
+        # wandb.log({"train_loss": total_loss, 
+        #             "train_accuracy": train_acc,
+        #             "test_accuracy": test_acc})
         
         timestamp_train = utils.time_delta_now(time_train)
         timestamp_test = utils.time_delta_now(time_test)
@@ -296,7 +297,7 @@ def simple_nn(intellizenz_net, exp_dict, saveModelPath, rtpt, train_df, test_df)
     # Return n batches, where each batch contain exp_dict['bs'] values. Each value has a tensor of features and its target value event(veranst) segment(from 0 to 2)
 
     # train_loader = torch.utils.data.DataLoader(Intellizenz_Data(path=train_path), batch_size=exp_dict['bs'], shuffle=True)
-    weighted_sampler, class_weights = get_weighted_sampler(train_path)
+    weighted_sampler, class_weights = utils.get_weighted_sampler(train_df)
     train_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=train_df), batch_size=exp_dict['bs'], sampler=weighted_sampler)
     test_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=test_df), batch_size=exp_dict['bs'], shuffle=True)
    
@@ -520,52 +521,3 @@ def multi_acc(y_pred, y_test):
     
     # return acc, y_pred_tags, y_pred_softmax
     return acc, y_pred_tags, y_pred
-
-# Estimate the distribution(frequency/count) of each class(veranst_segment-0,1,2)
-def get_class_distribution(obj):
-    count_dict = {
-        "0": 0,
-        "1": 0,
-        "2": 0,
-    }
-    
-    for i in obj:
-        if i == 0: 
-            count_dict['0'] += 1
-        elif i == 1: 
-            count_dict['1'] += 1
-        elif i == 2: 
-            count_dict['2'] += 1            
-        else:
-            print("Check classes.")
-            
-    return count_dict
-
-def get_all_target_data(df): 
-    # data_df = pd.read_parquet(path) 
-    y = df['veranst_segment']
-    return y
-
-def get_weighted_sampler(df):
-    y = get_all_target_data(df)
-    
-    # we obtain a tensor of all target values in the training data
-    target_list = []
-    for target in y.values:
-        target_list.append(target)
-
-    target_list = torch.tensor(target_list) 
-
-    # Calculate the weight of each class(veranst_segment=0/1/2) in the training data
-    class_count = [i for i in get_class_distribution(y).values()]
-    class_weights = 1./torch.tensor(class_count, dtype=torch.float) 
-
-    # To address class imbalance: WeightedRandomSampler is used to ensure that each mini batch contains samples from all the classes
-    # WeightedRandomSampler expects a weight for each sample. We do that using as follows.
-    class_weights_all = class_weights[target_list]
-
-    weighted_sampler = torch.utils.data.WeightedRandomSampler(weights=class_weights_all, 
-                                                                num_samples=len(class_weights_all),
-                                                                replacement=True)
-
-    return weighted_sampler, class_weights

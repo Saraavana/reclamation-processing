@@ -45,7 +45,6 @@ class Intellizenz(Dataset):
         # data = {'t1':dataTensor, 'ta1':self.tarif[index]}
         data = {'t1':dataTensor}
         # query = ":- not event(t1,{}). ".format(int(self.y[index]))
-        # query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),str(self.tarif[index]).replace(" ","").lower())
         query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),self.tarif[index])
         return data, query
 

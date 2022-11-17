@@ -56,11 +56,11 @@ print(optimizers)
 # Start training and testing
 ########
 
-wandb.init(project="Intellizenz", entity="elsaravana")
-wandb.config = {
-        "learning_rate": 0.001,
-        "epochs": 1
-}
+# wandb.init(project="Intellizenz", entity="elsaravana")
+# wandb.config = {
+#         "learning_rate": 0.001,
+#         "epochs": 1
+# }
 
 print('Start training for 1 epoch...')
 NeurASPobj.learn(dataList=dataList, obsList=queryList, epoch=1, smPickle=None, bar=True)
@@ -89,19 +89,19 @@ accuracy, singleAccuracy, y_target, y_pred, probas = testNN(model=m, testLoader=
 # check training accuracy
 accuracyTrain, singleAccuracyTrain, _, _, _ = testNN(model=m, testLoader=train_loader, device=device)
     
-probas = [x for sublist in probas for x in sublist] # probas dim-(n_samples, n_classes)
+# probas = [x for sublist in probas for x in sublist] # probas dim-(n_samples, n_classes)
 
-wandb.log({"train_accuracy": accuracyTrain,
-            "test_accuracy": accuracy})
+# wandb.log({"train_accuracy": accuracyTrain,
+#             "test_accuracy": accuracy})
 
             
-wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
-                preds=y_pred, y_true=y_target,
-                class_names=[0, 1, 2])})
-wandb.log({"pr" : wandb.plot.pr_curve(y_true=y_target, y_probas=probas,
-                labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
-wandb.log({"roc" : wandb.plot.roc_curve(y_true=y_target, y_probas=probas,
-                labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+# wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
+#                 preds=y_pred, y_true=y_target,
+#                 class_names=[0, 1, 2])})
+# wandb.log({"pr" : wandb.plot.pr_curve(y_true=y_target, y_probas=probas,
+#                 labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+# wandb.log({"roc" : wandb.plot.roc_curve(y_true=y_target, y_probas=probas,
+#                 labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
 
 print(f'{accuracyTrain:0.2f}\t{accuracy:0.2f}')
 print('--- total time from beginning: %s seconds ---' % int(time.time() - start_time))
