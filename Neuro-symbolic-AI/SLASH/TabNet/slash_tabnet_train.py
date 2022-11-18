@@ -22,21 +22,24 @@ import pandas as pd
 import numpy as np
 import time
 import column
+from sklearn.preprocessing import LabelEncoder
 
 #############################
 # SLASH program
 #############################
 program ='''
 row(t1).
-tarif(ta1).
 
-:- event(T,C), tarif(TA), TA="U-ST I (MUSIKER) NL", C=0 .
-:- event(T,C), tarif(TA), TA="U-ST I (MUSIKER) NL", C=1 . 
-
-npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T).
+npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). # [16,384, 1, 140]
 event(T,C) :- tabnet_vgsegment(0,+T,-C).
 
+:- event(T,C), tarif(TA), TA=50, C=0 .
+:- event(T,C), tarif(TA), TA=50, C=1 . 
+
 '''
+
+# :-not event(t1,2).
+# tarif(34).
 
 def slash_tabnet(exp_name, exp_dict):
     saveModelPath = './Neuro-symbolic-AI/SLASH/TabNet/data/'+exp_name+'/slash_tabnet_model_1.pt'
@@ -54,7 +57,21 @@ def slash_tabnet(exp_name, exp_dict):
     data_path = column.data_path_2016_2020_v3
     df = pd.read_parquet(data_path)
 
-    train_df, test_df = train_test_split(df, test_size=0.2, random_state=1)
+    class_frequency = df.groupby('veranst_segment')['veranst_segment'].transform('count')
+    df_sampled = df.sample(n=70000, weights=class_frequency, random_state=2)
+
+    le = LabelEncoder()
+    df_sampled['tarif_bez'] = le.fit_transform(df_sampled['tarif_bez'])
+
+    all_tarifs_le = [e for e in df_sampled['tarif_bez']]
+
+    tarif_classes=le.inverse_transform(all_tarifs_le).tolist()
+    index_of_tarif = tarif_classes.index('U-ST I (MUSIKER) NL')
+    print('The index is: ',index_of_tarif)
+    print('The label encoded value is: ',all_tarifs_le[index_of_tarif])
+
+
+    train_df, test_df = train_test_split(df_sampled, test_size=0.2, random_state=1)
 
     #NETWORKS
     if exp_dict['credentials']=='STN':

@@ -37,8 +37,13 @@ class Intellizenz(Dataset):
     def __getitem__(self, index):
         # dataTensor = self.X[index].unsqueeze(0) #dataTensor shape would be [1, 140]
         dataTensor = self.X[index] #dataTensor shape would be [140]
-        data = {'t1':dataTensor, 'ta1':self.tarif[index]}
-        query = ":- not event(t1,{}). ".format(int(self.y[index]))
+
+        # data = {'t1':dataTensor, 'ta1':self.tarif[index]}
+        data = {'t1':dataTensor}
+
+        # query = ":- not event(t1,{}). ".format(int(self.y[index]))
+        query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),self.tarif[index])
+
         return data, query
 
 class Intellizenz_Data(Dataset):

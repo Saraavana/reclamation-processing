@@ -5,11 +5,20 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 
 import os, sys; 
+parent_directory = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/SLASH' 
 column_path = os.path.dirname(os.path.realpath('C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/column.py'))
 if sys.path.__contains__(column_path)==False:
     sys.path.append(column_path)
 
+if sys.path.__contains__(parent_directory)==False:
+    sys.path.append(parent_directory)
+
 import column
+import utils
+
+from sklearn.model_selection import StratifiedKFold
+from sklearn.preprocessing import LabelEncoder
+
 
 def get_weighted_sampler(data_df):
     # y = get_all_target_data(path)
@@ -73,6 +82,7 @@ class Intellizenz(Dataset):
         data_df = data_df[features]
         data_df = data_df.fillna(-1) # Fill the Empty NaN values in all the cells with -1
 
+
         X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso','tarif_bez'])] #140 features 
         y = data_df['veranst_segment']
         tarif = data_df['tarif_bez']
@@ -126,37 +136,44 @@ class Intellizenz_Test(Dataset):
     def __len__(self):
         return len(self.y)
 
-
-# train_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_training_features_2016_2020_v1.parquet.gzip' 
-# test_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_testing_features_2016_2020_v1.parquet.gzip'
-
-# weighted_sampler, class_weights = get_weighted_sampler(train_path)
-
-# # Return n batches, where each batch contain batch_size values. Each value has a tensor of features 
-# # and its target value event(veranst) segment(from 0 to 2)
-# train_loader = torch.utils.data.DataLoader(Intellizenz(path=train_path,train=True), batch_size=64, sampler=weighted_sampler)
-# test_loader = torch.utils.data.DataLoader(Intellizenz(path=test_path, train=False), batch_size=64, shuffle=True)
-
-
+# Return n batches, where each batch contain batch_size values. Each value has a tensor of features 
+# and its target value event(veranst) segment(from 0 to 2)
 data_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v3.parquet.gzip'
 df = pd.read_parquet(data_path)
-df = df[:500]
+# df = df[:500]
 
-# u_st_nl_df = df.loc[df['tarif_bez']=='U-ST I (MUSIKER) NL']
+class_frequency = df.groupby('veranst_segment')['veranst_segment'].transform('count')
+df_sampled = df.sample(n=70000, weights=class_frequency, random_state=2)
 
-train_df, test_df = train_test_split(df, test_size=0.2, random_state=1)
-weighted_sampler, class_weights = get_weighted_sampler(train_df)
-test_weighted_sampler, test_class_weights = get_weighted_sampler(test_df)
+le = LabelEncoder()
+df_sampled['tarif_bez'] = le.fit_transform(df_sampled['tarif_bez'])
+
+all_tarifs_le = [e for e in df_sampled['tarif_bez']]
+
+tarif_classes=le.inverse_transform(all_tarifs_le).tolist()
+index_of_tarif = tarif_classes.index('U-ST I (MUSIKER) NL')
+print('The index is: ',index_of_tarif)
+print('The label encoded value is: ',all_tarifs_le[index_of_tarif])
+
+
+df_train, df_test = train_test_split(df_sampled, test_size=0.2, random_state=1)
+
+# skf = StratifiedKFold(n_splits=2)
+# K folds contains same distributions as original class distribution from actual dataframe
+# Splits train and test size equally to 'k' folds
+# for train_idx, test_idx in skf.split(df_sampled[column.features_v5],df_sampled['veranst_segment']):
+#     df_train=df_sampled.iloc[train_idx]
+#     df_test=df_sampled.iloc[test_idx]
+    
+train_weighted_sampler, train_class_weights = get_weighted_sampler(df_train)
+test_weighted_sampler, test_class_weights = get_weighted_sampler(df_test)
 
 # Return n batches, where each batch contain batch_size values. Each value has a tensor of features 
 # and its target value event(veranst) segment(from 0 to 2)
-train_loader = torch.utils.data.DataLoader(Intellizenz(data_df=train_df), batch_size=64, sampler=weighted_sampler)
+train_loader = torch.utils.data.DataLoader(Intellizenz(data_df=df_train), batch_size=64, sampler=train_weighted_sampler)
 
-# only randomly take 30000 data
-np.random.seed(1) # fix the random seed for reproducibility
-# train_loader = torch.utils.data.Subset(train_loader, np.random.choice(len(train_loader), 21778, replace=False))
-# test_loader = torch.utils.data.DataLoader(Intellizenz(data_df=test_df), batch_size=64, shuffle=True)
-test_loader = torch.utils.data.DataLoader(Intellizenz(data_df=test_df), batch_size=64, sampler=test_weighted_sampler)
+# test_loader = torch.utils.data.DataLoader(Intellizenz(data_df=df_test), batch_size=64, shuffle=True)
+test_loader = torch.utils.data.DataLoader(Intellizenz(data_df=df_test), batch_size=64, sampler=test_weighted_sampler)
 
 # tarif = 'U-ST I (MUSIKER) NL' in trainloader(from 1.3M data) - 18094 - less frequency than actual cause of weighted_sampler
 # tarif = 'U-ST I (MUSIKER) NL' in testloader - 5662
@@ -173,9 +190,16 @@ for data_batch, label_batch, tarif_batch in train_loader:
             y = label_batch[i]
             tarif = tarif_batch[i]
 
-            query = ":- not event(t1,{}). ".format(int(y))
-            dataList.append({'t1': x, 'ta1':tarif})
+            # data = {'t1':x, 'ta1':tarif}
+            data = {'t1':x}
+
+            # query = ":- not event(t1,{}). ".format(int(y))
+            query = ":- not event(t1,{}). \ntarif({}).".format(int(y),tarif)
+
+            dataList.append(data)
             queryList.append(query)
+
+            
 
 
 # program ='''

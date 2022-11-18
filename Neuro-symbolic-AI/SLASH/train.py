@@ -102,9 +102,9 @@ def slash_intellizenz(exp_name, exp_dict):
     all_tarifs_le = [e for e in df['tarif_bez']]
     
     tarif_classes=le.inverse_transform(all_tarifs_le).tolist()
-    indexOfTheTarif = tarif_classes.index('U-ST I (MUSIKER) NL')
-    print('The index is: ',indexOfTheTarif)
-    print('The label encoded value is: ',all_tarifs_le[indexOfTheTarif])
+    index_of_tarif = tarif_classes.index('U-ST I (MUSIKER) NL')
+    print('The index is: ',index_of_tarif)
+    print('The label encoded value is: ',all_tarifs_le[index_of_tarif])
 
 
     train_df, test_df = train_test_split(df, test_size=0.2, random_state=1)

@@ -107,6 +107,8 @@ def compute_gradients_splitwise(networkOutput_split, query_batch_split, mvpp, n,
             # Step 2.1: replace the parameters in the MVPP program with network outputs
             #iterate over all rules
 
+# give the probabilities from NN to Mvpp class
+
             for ruleIdx in range(mvpp['networkPrRuleNum']):
                 #for (m, i, inf_type, t, j) in mvpp['networkProb'][ruleIdx]:
                 #    print("ruleIdx", ruleIdx)
@@ -131,7 +133,7 @@ def compute_gradients_splitwise(networkOutput_split, query_batch_split, mvpp, n,
             
 
             if method == 'exact': #default exact
-                gradients, models = dmvpp.gradients_one_query(query, opt=opt)
+                gradients, models = dmvpp.gradients_one_query(query, opt=opt) # returns stable mobels and the gradients
             elif method == 'slot':
                 models = dmvpp.find_one_most_probable_SM_under_query_noWC(query)
                 gradients = dmvpp.mvppLearn(models)
@@ -535,6 +537,7 @@ class SLASH(object):
                 
                 # The network outputs:  {'digit': {1: {'i1': None, 'i2': None}}} # MNIST Addition
                 # The network outputs:  {'covtype': {1: {'t1': None}}} # Forest coverage type classification
+                # The network outputs:  {'tabnet_vgsegment': {1: {'t1': None}}} # Tabnet + slash
                 for m in self.networkOutputs: # m = contype or digit
                     if m not in networkOutput:
                         networkOutput[m] = {}
@@ -674,7 +677,6 @@ class SLASH(object):
                 
                 prob_q_batch_list = np.concatenate(prob_q_batch_list_splits)
 
-
                 #store the gradients, the stable models and p(Q) of the last batch processed
                 self.networkGradients = gradient_batch_list
                 self.stableModels = model_batch_list
@@ -731,9 +733,13 @@ class SLASH(object):
                         #iterate over all neural literals t
                         self.networkMapping[m].module.em_process_batch()
 
-                #for gradient descent we minimize the negative log likelihood    
+                #for gradient descent we minimize the negative log likelihood    #to maximize expectation
+                # Bernoulli distribution einsum network
+                # poon domingo 
+                # RAD - SPN for narrow, and deep tree and repetition N
                 else:
-                    result_nll = -result_ll
+                    # result_nll = -result_ll
+                    result_nll = (-result_ll).pow(2)
                     
                     #reset optimizers
                     for midx, m in enumerate(self.optimizers):
@@ -809,6 +815,7 @@ class SLASH(object):
                 # data = features[i]
                 # target = labels[i]               
                 output = self.networkMapping[network](data.to(self.device))
+
                 probas.append(output.cpu().detach().tolist())
                 if len(self.n) != 0 and self.n[network] > 2 :
                     pred = output.argmax(dim=-1, keepdim=True) # get the index of the max log-probability

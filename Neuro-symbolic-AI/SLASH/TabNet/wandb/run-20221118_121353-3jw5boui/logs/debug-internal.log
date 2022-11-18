@@ -1,0 +1,52 @@
+2022-11-18 12:13:53,088 INFO    StreamThr :2860 [internal.py:wandb_internal():88] W&B internal server running at pid: 2860, started at: 2022-11-18 12:13:53.087447
+2022-11-18 12:13:53,089 DEBUG   HandlerThread:2860 [handler.py:handle_request():139] handle_request: status
+2022-11-18 12:13:53,093 DEBUG   SenderThread:2860 [sender.py:send_request():317] send_request: status
+2022-11-18 12:13:53,108 INFO    WriterThread:2860 [datastore.py:open_for_write():75] open: c:\Users\sgopalakrish\Downloads\intellizenz-model-training\Neuro-symbolic-AI\SLASH\TabNet\wandb\run-20221118_121353-3jw5boui\run-3jw5boui.wandb
+2022-11-18 12:13:53,108 DEBUG   SenderThread:2860 [sender.py:send():303] send: header
+2022-11-18 12:13:53,193 DEBUG   SenderThread:2860 [sender.py:send():303] send: run
+2022-11-18 12:13:53,578 DEBUG   HandlerThread:2860 [handler.py:handle_request():139] handle_request: check_version
+2022-11-18 12:13:53,590 INFO    SenderThread:2860 [dir_watcher.py:__init__():216] watching files in: c:\Users\sgopalakrish\Downloads\intellizenz-model-training\Neuro-symbolic-AI\SLASH\TabNet\wandb\run-20221118_121353-3jw5boui\files
+2022-11-18 12:13:53,591 INFO    SenderThread:2860 [sender.py:_start_run_threads():928] run started: 3jw5boui with start time 1668770033.091446
+2022-11-18 12:13:53,591 DEBUG   SenderThread:2860 [sender.py:send():303] send: summary
+2022-11-18 12:13:53,592 INFO    SenderThread:2860 [sender.py:_save_file():1171] saving file wandb-summary.json with policy end
+2022-11-18 12:13:53,592 DEBUG   SenderThread:2860 [sender.py:send_request():317] send_request: check_version
+2022-11-18 12:13:53,703 DEBUG   HandlerThread:2860 [handler.py:handle_request():139] handle_request: run_start
+2022-11-18 12:13:53,778 DEBUG   HandlerThread:2860 [system_info.py:__init__():31] System info init
+2022-11-18 12:13:53,778 DEBUG   HandlerThread:2860 [system_info.py:__init__():46] System info init done
+2022-11-18 12:13:53,778 INFO    HandlerThread:2860 [system_monitor.py:start():150] Starting system monitor
+2022-11-18 12:13:53,779 INFO    SystemMonitor:2860 [system_monitor.py:_start():116] Starting system asset monitoring threads
+2022-11-18 12:13:53,779 INFO    HandlerThread:2860 [system_monitor.py:probe():168] Collecting system info
+2022-11-18 12:13:53,786 INFO    SystemMonitor:2860 [interfaces.py:start():168] Started cpu
+2022-11-18 12:13:53,786 INFO    SystemMonitor:2860 [interfaces.py:start():168] Started disk
+2022-11-18 12:13:53,787 INFO    SystemMonitor:2860 [interfaces.py:start():168] Started gpu
+2022-11-18 12:13:53,787 INFO    SystemMonitor:2860 [interfaces.py:start():168] Started memory
+2022-11-18 12:13:53,799 INFO    SystemMonitor:2860 [interfaces.py:start():168] Started network
+2022-11-18 12:13:53,808 DEBUG   HandlerThread:2860 [system_info.py:probe():195] Probing system
+2022-11-18 12:13:53,812 DEBUG   HandlerThread:2860 [system_info.py:_probe_git():180] Probing git
+2022-11-18 12:13:53,971 DEBUG   HandlerThread:2860 [system_info.py:_probe_git():188] Probing git done
+2022-11-18 12:13:53,971 DEBUG   HandlerThread:2860 [system_info.py:probe():241] Probing system done
+2022-11-18 12:13:53,972 DEBUG   HandlerThread:2860 [system_monitor.py:probe():177] {'os': 'Windows-10-10.0.19041-SP0', 'python': '3.9.13', 'heartbeatAt': '2022-11-18T11:13:53.808388', 'startedAt': '2022-11-18T11:13:53.066446', 'docker': None, 'cuda': None, 'args': None, 'state': 'running', 'program': '<python with no main file>', 'git': {'remote': 'https://github.com/cloudIT4IPM/intellizenz-model-training.git', 'commit': '4a4d732a8c3fbd27853af2b6bceedd6a6620ec03'}, 'email': 'sgopalakrish@it4ipm.de', 'root': 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training', 'host': 'PCML1090', 'username': 'sgopalakrish', 'executable': 'c:\\Users\\sgopalakrish\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\intellizenz-model-training-LRwJb8pv-py3.9\\Scripts\\python.exe', 'cpu_count': 8, 'cpu_count_logical': 16, 'cpu_freq': {'current': 3301.0, 'min': 0.0, 'max': 3301.0}, 'cpu_freq_per_core': [{'current': 3301.0, 'min': 0.0, 'max': 3301.0}], 'disk': {'total': 953.6455039978027, 'used': 396.5843734741211}, 'gpu': 'NVIDIA GeForce RTX 3060 Laptop GPU', 'gpu_count': 1, 'gpu_devices': [{'name': 'NVIDIA GeForce RTX 3060 Laptop GPU', 'memory_total': 6442450944}], 'memory': {'total': 31.36571502685547}}
+2022-11-18 12:13:53,972 INFO    HandlerThread:2860 [system_monitor.py:probe():178] Finished collecting system info
+2022-11-18 12:13:53,972 INFO    HandlerThread:2860 [system_monitor.py:probe():181] Publishing system info
+2022-11-18 12:13:53,972 DEBUG   HandlerThread:2860 [system_info.py:_save_pip():51] Saving list of pip packages installed into the current environment
+2022-11-18 12:13:53,974 DEBUG   HandlerThread:2860 [system_info.py:_save_pip():67] Saving pip packages done
+2022-11-18 12:13:53,975 INFO    HandlerThread:2860 [system_monitor.py:probe():183] Finished publishing system info
+2022-11-18 12:13:54,468 DEBUG   SenderThread:2860 [sender.py:send():303] send: files
+2022-11-18 12:13:54,469 INFO    SenderThread:2860 [sender.py:_save_file():1171] saving file wandb-metadata.json with policy now
+2022-11-18 12:13:54,486 DEBUG   HandlerThread:2860 [handler.py:handle_request():139] handle_request: stop_status
+2022-11-18 12:13:54,486 DEBUG   SenderThread:2860 [sender.py:send_request():317] send_request: stop_status
+2022-11-18 12:13:54,600 INFO    Thread-17 :2860 [dir_watcher.py:_on_file_created():275] file/dir created: c:\Users\sgopalakrish\Downloads\intellizenz-model-training\Neuro-symbolic-AI\SLASH\TabNet\wandb\run-20221118_121353-3jw5boui\files\wandb-summary.json
+2022-11-18 12:13:54,600 INFO    Thread-17 :2860 [dir_watcher.py:_on_file_created():275] file/dir created: c:\Users\sgopalakrish\Downloads\intellizenz-model-training\Neuro-symbolic-AI\SLASH\TabNet\wandb\run-20221118_121353-3jw5boui\files\requirements.txt
+2022-11-18 12:13:54,601 INFO    Thread-17 :2860 [dir_watcher.py:_on_file_created():275] file/dir created: c:\Users\sgopalakrish\Downloads\intellizenz-model-training\Neuro-symbolic-AI\SLASH\TabNet\wandb\run-20221118_121353-3jw5boui\files\wandb-metadata.json
+2022-11-18 12:13:54,666 DEBUG   SenderThread:2860 [sender.py:send():303] send: telemetry
+2022-11-18 12:13:54,668 DEBUG   SenderThread:2860 [sender.py:send():303] send: config
+2022-11-18 12:13:54,715 DEBUG   HandlerThread:2860 [handler.py:handle_request():139] handle_request: log_artifact
+2022-11-18 12:13:54,716 DEBUG   SenderThread:2860 [sender.py:send_request():317] send_request: log_artifact
+2022-11-18 12:13:55,095 DEBUG   HandlerThread:2860 [handler.py:handle_request():139] handle_request: partial_history
+2022-11-18 12:13:55,322 DEBUG   HandlerThread:2860 [handler.py:handle_request():139] handle_request: log_artifact
+2022-11-18 12:13:55,338 DEBUG   HandlerThread:2860 [handler.py:handle_request():139] handle_request: partial_history
+2022-11-18 12:13:55,499 INFO    Thread-22 :2860 [upload_job.py:push():143] Uploaded file C:\Users\SGOPAL~1\AppData\Local\Temp\tmpojq6kiwcwandb\2nnv15ou-wandb-metadata.json
+2022-11-18 12:13:55,611 INFO    Thread-17 :2860 [dir_watcher.py:_on_file_created():275] file/dir created: c:\Users\sgopalakrish\Downloads\intellizenz-model-training\Neuro-symbolic-AI\SLASH\TabNet\wandb\run-20221118_121353-3jw5boui\files\media\table\conf_mat_table_0_2c6b7a73cf04ec94fbb6.table.json
+2022-11-18 12:13:55,612 INFO    Thread-17 :2860 [dir_watcher.py:_on_file_created():275] file/dir created: c:\Users\sgopalakrish\Downloads\intellizenz-model-training\Neuro-symbolic-AI\SLASH\TabNet\wandb\run-20221118_121353-3jw5boui\files\media\table\pr_table_1_dedf5087985db51d2f47.table.json
+2022-11-18 12:13:55,612 INFO    Thread-17 :2860 [dir_watcher.py:_on_file_created():275] file/dir created: c:\Users\sgopalakrish\Downloads\intellizenz-model-training\Neuro-symbolic-AI\SLASH\TabNet\wandb\run-20221118_121353-3jw5boui\files\media\table
+2022-11-18 12:13:55,612 INFO    Thread-17 :2860 [dir_watcher.py:_on_file_created():275] file/dir created: c:\Users\sgopalakrish\Downloads\intellizenz-model-training\Neuro-symbolic-AI\SLASH\TabNet\wandb\run-20221118_121353-3jw5boui\files\media
