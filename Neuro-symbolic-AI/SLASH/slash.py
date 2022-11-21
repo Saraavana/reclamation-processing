@@ -71,7 +71,6 @@ def replace_plus_minus_occurences(pi_prime):
     return pi_prime, npp_operators
 
 
-
 def compute_gradients_splitwise(networkOutput_split, query_batch_split, mvpp, n, normalProbs, dmvpp, method, opt):
         """
         Computes the gradients, stable models and P(Q) for part of the batch.
@@ -85,9 +84,7 @@ def compute_gradients_splitwise(networkOutput_split, query_batch_split, mvpp, n,
         @param method:
         @param opt:
         :return:returns the gradients, the stable models and the probability P(Q)
-        """
-        
-        
+        """        
         query_batch_split = query_batch_split.tolist()
         
         #create a list to store the gradients into
@@ -131,9 +128,12 @@ def compute_gradients_splitwise(networkOutput_split, query_batch_split, mvpp, n,
 
             query, _ = replace_plus_minus_occurences(query)
             
-
+            tarif_id = ''
             if method == 'exact': #default exact
                 gradients, models = dmvpp.gradients_one_query(query, opt=opt) # returns stable mobels and the gradients
+                tarif_str = query.split("\n")[1]
+                tarif_id = re.findall(r'\b\d+\b', tarif_str)[0]
+                
             elif method == 'slot':
                 models = dmvpp.find_one_most_probable_SM_under_query_noWC(query)
                 gradients = dmvpp.mvppLearn(models)
@@ -154,14 +154,18 @@ def compute_gradients_splitwise(networkOutput_split, query_batch_split, mvpp, n,
                 print('Error: the method \'%s\' should be either \'exact\' or \'sampling\'', method)
             
             prob_q = dmvpp.sum_probability_for_stable_models(models)
+
+            
+            # if tarif_id == '50' and bidx==0 and iter == 0: 
+            #     print('Models: ',models)
+            #     print('Gradients: ',gradients)
+            #     print('Probabilities: ',prob_q)
             
             model_batch_list_split.append(models)
             gradient_batch_list_split.append(gradients)
             prob_q_batch_list_split.append(prob_q)
         
         return gradient_batch_list_split, model_batch_list_split, prob_q_batch_list_split
-
-
 
 
 
@@ -478,7 +482,7 @@ class SLASH(object):
                        
         # we train for 'epoch' times of epochs. Learning for multiple epochs can also be done in an outer loop by specifying epoch = 1
         for epochIdx in range(epoch):
-        
+    
             total_loss = []
     
             #iterate over all batches
@@ -491,7 +495,7 @@ class SLASH(object):
             print('Network types: ',self.networkTypes)
             for data_batch, query_batch in tqdm(dataset_loader):
                 start_time = time.time()
-                           
+                
                 # If we have marginalisation masks, than we have to pick one for the batch
                 if marginalisation_masks is not None:
                     marg_mask = marginalisation_masks[i]
@@ -641,7 +645,6 @@ class SLASH(object):
                                 split_networkoutputs[sidx][m][o][t] = s.detach().cpu()
 
 
-
                 #Compute the splits (gradients, P(Q), stable models) in parallel with JobLib
                 split_outputs = Parallel(n_jobs=p_num, backend='loky')(
                     delayed(compute_gradients_splitwise)
@@ -651,9 +654,7 @@ class SLASH(object):
                             dmvpp, method, opt
                     )
                          for i in range(p_num)) 
-
-
-
+ 
                 #concatenate the gradients, stable models and query p(Q) from all splits back into a single batch
                 gradient_batch_list_splits = []
                 model_batch_list_splits = []
@@ -663,7 +664,7 @@ class SLASH(object):
                     gradient_batch_list_splits.append(split_outputs[i][0])
                     model_batch_list_splits.append(split_outputs[i][1])
                     prob_q_batch_list_splits.append(split_outputs[i][2])
-                
+
                 gradient_batch_list = np.concatenate(gradient_batch_list_splits)
 
                 try:
@@ -815,8 +816,9 @@ class SLASH(object):
                 # data = features[i]
                 # target = labels[i]               
                 output = self.networkMapping[network](data.to(self.device))
-
                 probas.append(output.cpu().detach().tolist())
+                # The domain is:  {'tabnet_vgsegment': ['0', '1', '2']}
+                # The n value is:  {'tabnet_vgsegment': 3} #Length of domain(number of classes in domain)
                 if len(self.n) != 0 and self.n[network] > 2 :
                     pred = output.argmax(dim=-1, keepdim=True) # get the index of the max log-probability
                     target = target.to(self.device).view_as(pred)
@@ -825,7 +827,7 @@ class SLASH(object):
                     y_target = np.concatenate( (y_target, target.int().flatten().cpu() ))
                     y_pred = np.concatenate( (y_pred , pred.int().flatten().cpu()) )
                     
-                    
+
                     correct += correctionMatrix.all(1).sum().item()
                     total += target.shape[0]
                     singleCorrect += correctionMatrix.sum().item()
@@ -834,6 +836,7 @@ class SLASH(object):
                     pred = np.array([int(i[0]<0.5) for i in output.tolist()])
                     target = target.numpy()
                     
+
                     #y_target.append(target)
                     #y_pred.append(pred.int())
                     
@@ -855,10 +858,113 @@ class SLASH(object):
             return accuracy, singleAccuracy, confusionMatrix
 
         return accuracy, singleAccuracy, y_pred, y_target, probas
-    
+
+
+    def testNetworkWithQuery(self, network, testLoader, ret_confusion=False):
+        """
+        Return a real number in [0,100] denoting accuracy
+        @network is the name of the neural network or probabilisitc circuit to check the accuracy. 
+        @testLoader is the input and output pairs.
+        """
+        self.networkMapping[network].eval()
+        # check if total prediction is correct
+        correct = 0
+        total = 0
+        # check if each single prediction is correct
+        singleCorrect = 0
+        singleTotal = 0
+        
+        #list to collect targets and predictions for confusion matrix
+        y_target = []
+        y_pred = []
+        probas = []
+        with torch.no_grad():
+            #iterate over all queries
+            for bidx, loader in enumerate(testLoader):
+
+            # for data, query in loader:
+                data_tensor = loader[0]['t1']
+                target = loader[0]['target']          
+                query = loader[1]
+                output = self.networkMapping[network](data_tensor.to(self.device))
+
+                prgm = '''
+                row(t1).
+                
+                npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
+                event(TA,C):- tabnet_vgsegment(0,1,T,C), tarif(TA), TA=50, C!=0, C!=1
+                '''
+
+                dmvpp = MVPP(self.mvpp['program'])
+                # dmvpp = MVPP(prgm)   
+                print('The mvpp program is: ',self.mvpp['program'])    
+                print('Dmvpp parameters: ', dmvpp.parameters)
+                print('Mvpp network pr rule Num: ',self.mvpp['networkPrRuleNum'])       
+
+                for ruleIdx in range(self.mvpp['networkPrRuleNum']):
+                    print('The rule id is: ',ruleIdx)
+                    print('MVPP network probability: ',self.mvpp['networkProb'])
+                    print('The domain is: ',self.domain)
+                    print('The n value is: ',self.n)
+
+                    dmvpp.parameters[ruleIdx] = [self.networkOutputs[m][inf_type][t][bidx][i*self.n[m]+j].cpu().detach().numpy() for (m, i, inf_type, t, j) in self.mvpp['networkProb'][ruleIdx]]
+                    print('New dmvpp value is: ',dmvpp.parameters)
+                    print('Dmvpp value is: ',dmvpp.parameters[0])
+                    print('Dmvpp value ---: ',dmvpp.parameters[0][0])
+                    
+
+                    reshaped_output = [np.array(each) for each in output.cpu().detach().numpy().flatten()]
+                    dmvpp.parameters[ruleIdx] = reshaped_output
+                    print('Test dmvpp value is: ',dmvpp.parameters)
+
+
+                print(query)
+                gradients, models = dmvpp.gradients_one_query(':- tarif(35).', opt=False) # returns stable mobels and the gradients
+                prob_q = dmvpp.sum_probability_for_stable_models(models)
+
+                probas.append(output.cpu().detach().numpy())
+                print('Probas: ', probas)
+                print('Probas que: ', prob_q)
+                # If number of classes in domain greater than 2, multi-class classification
+                if len(self.n) != 0 and self.n[network] > 2 :
+                    pred = output.argmax(dim=-1, keepdim=True) # get the index of the max log-probability
+                    target = target.to(self.device).view_as(pred)
+                    
+                    correctionMatrix = (target.int() == pred.int()).view(target.shape[0], -1)
+                    y_target = np.concatenate( (y_target, target.int().flatten().cpu() ))
+                    y_pred = np.concatenate( (y_pred , pred.int().flatten().cpu()) )
+                    
+                    
+                    correct += correctionMatrix.all(1).sum().item()
+                    total += target.shape[0]
+                    singleCorrect += correctionMatrix.sum().item()
+                    singleTotal += target.numel()
+                else: #For binary classification
+                    pred = np.array([int(i[0]<0.5) for i in output.tolist()])
+                    target = target.numpy()
+                    
+                    correct += (pred.reshape(target.shape) == target).sum()
+                    total += len(pred)
+        accuracy = correct / total
+
+        if len(self.n) != 0 and self.n[network] > 2:
+            singleAccuracy = singleCorrect / singleTotal
+        else:
+            singleAccuracy = 0
+        
+        #print(correct,"/", total, "=", correct/total)
+        #print(singleCorrect,"/", singleTotal, "=", singleCorrect/singleTotal)
+
+        
+        if ret_confusion:
+            confusionMatrix = confusion_matrix(np.array(y_target), np.array(y_pred))
+            return accuracy, singleAccuracy, confusionMatrix
+
+        return accuracy, singleAccuracy, y_pred, y_target, probas
+
     # We interprete the most probable stable model(s) as the prediction of the inference mode
     # and check the accuracy of the inference mode by checking whether the query is satisfied by the prediction
-    def testInferenceResults(self, dataset_loader):
+    def  testInferenceResults(self, dataset_loader):
         """ Return a real number in [0,1] denoting the accuracy
         @param dataset_loader: a dataloader object loading a dataset to test on
         """

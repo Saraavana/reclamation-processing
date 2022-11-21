@@ -12,9 +12,13 @@ date_string = datetime.datetime.today().strftime('%d-%m-%Y')
 #                    {'lr': 0.001, 'bs':64, 'epochs':200, 'use_em':False,
 #                     'start_date':date_string, 'resume':False, 'p_num':1, 'credentials':'STN'}}
 
+# experiments = {'slash-with-tabnet': 
+#                    {'lr': 0.02, 'bs':16384, 'epochs':200, 'use_em':False,
+#                     'start_date':date_string, 'resume':False, 'p_num':8, 'credentials':'STN'}}
+
 experiments = {'slash-with-tabnet': 
-                   {'lr': 0.02, 'bs':16384, 'epochs':200, 'use_em':False,
-                    'start_date':date_string, 'resume':False, 'p_num':8, 'credentials':'STN'}}
+                   {'lr': 0.02, 'bs':500, 'epochs':1, 'use_em':False,
+                    'start_date':date_string, 'resume':False, 'p_num':1, 'credentials':'STN'}}
 
                     
 
