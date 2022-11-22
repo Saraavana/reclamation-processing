@@ -900,87 +900,34 @@ class SLASH(object):
         with torch.no_grad():
             #iterate over all queries
             for bidx, loader in enumerate(testLoader):
-                print('The loader: ', loader)
-            # for data, query in loader:
-                # data_tensor = loader[0]
                 data_tensor = loader[0]['t1']
-                # target = loader[0]['target']          
-                # query = loader[1]
                 target = loader[1]          
                 query = loader[2]
-          
-                # query = loader[1]
-                print('The query: ',query)
 
                 output = self.networkMapping[network](data_tensor.to(self.device))
 
-                prgm = '''
-                row(t1).
-                
-                npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
-                event(TA,C):- tabnet_vgsegment(0,1,T,C), tarif(TA), TA=50, C!=0, C!=1
-                '''
-
                 dmvpp = MVPP(self.mvpp['program'])
-                print('The mvpp program is: ',self.mvpp['program'])    
-                print('Dmvpp parameters: ', dmvpp.parameters)
-                print('Mvpp network pr rule Num: ',self.mvpp['networkPrRuleNum'])       
+                # dmvpp.parameters = [[0.33333, 0.33333, 0.33333]]       
 
                 for ruleIdx in range(self.mvpp['networkPrRuleNum']):
-
                     reshaped_output = [torch.Tensor(np.array(each)) for each in output.cpu().detach().numpy().flatten()]
                     dmvpp.parameters[ruleIdx] = reshaped_output
-                    print('Test dmvpp value is: ',dmvpp.parameters)
 
-                print('Test query: .........',str(query)[2:-3])
-                print(str(query)[2:-3].strip())
-                splits = str(query)[2:-3].split('\\n')
-                print('the splits: ',splits)
-                query = '\n'.join([splits[0], splits[1]])
-                print('New str3 is: ',query)
+                #Remove following '()', from query
+                query = str(query)[2:-3]
                 query, _ = replace_plus_minus_occurences(query)
-                print('Test query: .........',query)
-                print('#####################################')
 
-                print(query)
-                query_with_only_event = ":- not event(t1,2)."
-                query_with_tarif_and_event = ":- not event(t1,2). \ntarif(50)." 
-                query_with_tarif_only = "tarif(50)." 
-
-                # query_1, _ = replace_plus_minus_occurences(query_with_only_event)
-                # query_2, _ = replace_plus_minus_occurences(query_with_tarif_only)
-                # query_3, _ = replace_plus_minus_occurences(query_with_tarif_and_event)
-
-                query_1 = query_with_only_event
-                query_2 = query_with_tarif_only
-                query_3 = query_with_tarif_and_event
-
-                print('Test query: .........',query)
-                gradients, models = dmvpp.gradients_one_query(query_1, opt=False) # returns stable mobels and the gradients
-                print('Test stable models are: ',models)
+                
+                gradients, models = dmvpp.gradients_one_query(query, opt=False) # returns stable mobels and the gradients
+                # print('Test stable models are: ',models)
                 prob_q = dmvpp.sum_probability_for_stable_models(models)
-                print('Test probability with only event query: ',prob_q)
-                print('Test gradients with only event query: ',gradients)
-
-                gradients_1, models_1 = dmvpp.gradients_one_query(query_2, opt=False) # returns stable mobels and the gradients
-                print('Test stable models are: ',models_1)
-                prob_q_1 = dmvpp.sum_probability_for_stable_models(models_1)
-
-                print('Test probability with only tarif: ',prob_q_1)
-                print('Test gradients with only tarif: ',gradients_1)
-
-                gradients_2, models_2 = dmvpp.gradients_one_query(query_3, opt=False) # returns stable mobels and the gradients
-                print('Test stable models are: ',models_2)
-                prob_q_2 = dmvpp.sum_probability_for_stable_models(models_2)
-
-                print('Test probability with only tarif & event: ',prob_q_2)
-                print('Test gradients with only tarif & event: ',gradients_2)
-
+                # print('Test probability with only tarif: ',prob_q)
+                # print('Test gradients with only tarif: ',gradients)
+                
                 probas.append(output.cpu().detach().numpy())
-                print('Probas: ', probas)
                 # The domain is:  {'tabnet_vgsegment': ['0', '1', '2']}
                 # The n value is:  {'tabnet_vgsegment': 3}
-                # If number of classes in domain greater than 2, multi-class classification
+                # If number of classes in domain greater than 2, then it's multi-class classification
                 if len(self.n) != 0 and self.n[network] > 2 :
                     pred = output.argmax(dim=-1, keepdim=True) # get the index of the max log-probability
                     target = target.to(self.device).view_as(pred)
@@ -1005,16 +952,11 @@ class SLASH(object):
                     correct += (pred.reshape(target.shape) == target).sum()
                     total += len(pred)
         accuracy = correct / total
-        print('The accuracy is: ',accuracy)
 
         if len(self.n) != 0 and self.n[network] > 2:
             singleAccuracy = singleCorrect / singleTotal
         else:
             singleAccuracy = 0
-        
-        #print(correct,"/", total, "=", correct/total)
-        #print(singleCorrect,"/", singleTotal, "=", singleCorrect/singleTotal)
-
         
         if ret_confusion:
             confusionMatrix = confusion_matrix(np.array(y_target), np.array(y_pred))
