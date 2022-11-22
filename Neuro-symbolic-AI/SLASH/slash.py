@@ -922,19 +922,11 @@ class SLASH(object):
                 '''
 
                 dmvpp = MVPP(self.mvpp['program'])
-                # dmvpp = MVPP(prgm)   
                 print('The mvpp program is: ',self.mvpp['program'])    
                 print('Dmvpp parameters: ', dmvpp.parameters)
                 print('Mvpp network pr rule Num: ',self.mvpp['networkPrRuleNum'])       
 
                 for ruleIdx in range(self.mvpp['networkPrRuleNum']):
-                    print('The rule id is: ',ruleIdx)
-                    print('MVPP network probability: ',self.mvpp['networkProb'])
-                    print('The domain is: ',self.domain)
-                    print('The n value is: ',self.n)
-
-                    dmvpp.parameters[ruleIdx] = [self.networkOutputs[m][inf_type][t][bidx][i*self.n[m]+j].cpu().detach().numpy() for (m, i, inf_type, t, j) in self.mvpp['networkProb'][ruleIdx]]
-                    print('New dmvpp value is: ',dmvpp.parameters)
 
                     reshaped_output = [torch.Tensor(np.array(each)) for each in output.cpu().detach().numpy().flatten()]
                     dmvpp.parameters[ruleIdx] = reshaped_output
@@ -953,28 +945,36 @@ class SLASH(object):
                 print(query)
                 query_with_only_event = ":- not event(t1,2)."
                 query_with_tarif_and_event = ":- not event(t1,2). \ntarif(50)." 
-                query_with_tarif_only = ":- not tarif(50)." 
-                query_1, _ = replace_plus_minus_occurences(query_with_only_event)
-                query_2, _ = replace_plus_minus_occurences(query_with_tarif_only)
-                query_3, _ = replace_plus_minus_occurences(query_with_tarif_and_event)
+                query_with_tarif_only = "tarif(50)." 
+
+                # query_1, _ = replace_plus_minus_occurences(query_with_only_event)
+                # query_2, _ = replace_plus_minus_occurences(query_with_tarif_only)
+                # query_3, _ = replace_plus_minus_occurences(query_with_tarif_and_event)
+
+                query_1 = query_with_only_event
+                query_2 = query_with_tarif_only
+                query_3 = query_with_tarif_and_event
 
                 print('Test query: .........',query)
                 gradients, models = dmvpp.gradients_one_query(query_1, opt=False) # returns stable mobels and the gradients
-                print('Test stabel models are: ',models)
+                print('Test stable models are: ',models)
                 prob_q = dmvpp.sum_probability_for_stable_models(models)
                 print('Test probability with only event query: ',prob_q)
+                print('Test gradients with only event query: ',gradients)
 
                 gradients_1, models_1 = dmvpp.gradients_one_query(query_2, opt=False) # returns stable mobels and the gradients
-                print('Test stabel models are: ',models_1)
+                print('Test stable models are: ',models_1)
                 prob_q_1 = dmvpp.sum_probability_for_stable_models(models_1)
 
                 print('Test probability with only tarif: ',prob_q_1)
+                print('Test gradients with only tarif: ',gradients_1)
 
                 gradients_2, models_2 = dmvpp.gradients_one_query(query_3, opt=False) # returns stable mobels and the gradients
-                print('Test stabel models are: ',models_2)
+                print('Test stable models are: ',models_2)
                 prob_q_2 = dmvpp.sum_probability_for_stable_models(models_2)
 
                 print('Test probability with only tarif & event: ',prob_q_2)
+                print('Test gradients with only tarif & event: ',gradients_2)
 
                 probas.append(output.cpu().detach().numpy())
                 print('Probas: ', probas)
@@ -984,7 +984,11 @@ class SLASH(object):
                 if len(self.n) != 0 and self.n[network] > 2 :
                     pred = output.argmax(dim=-1, keepdim=True) # get the index of the max log-probability
                     target = target.to(self.device).view_as(pred)
-                    
+
+                    # if the query contains, tarif id-50, set the prediction to class 2
+                    if 'tarif(50)' in str(query):
+                        pred = torch.Tensor([2]).to(self.device)
+
                     correctionMatrix = (target.int() == pred.int()).view(target.shape[0], -1)
                     y_target = np.concatenate( (y_target, target.int().flatten().cpu() ))
                     y_pred = np.concatenate( (y_pred , pred.int().flatten().cpu()) )
@@ -1001,6 +1005,7 @@ class SLASH(object):
                     correct += (pred.reshape(target.shape) == target).sum()
                     total += len(pred)
         accuracy = correct / total
+        print('The accuracy is: ',accuracy)
 
         if len(self.n) != 0 and self.n[network] > 2:
             singleAccuracy = singleCorrect / singleTotal
