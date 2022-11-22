@@ -74,12 +74,12 @@ def slash_tabnet(exp_name, exp_dict):
 
     print("Experiment parameters:", exp_dict)
 
-    # wandb.init(project="Intellizenz", entity="elsaravana")
-    # wandb.config = {
-    #     "learning_rate": exp_dict['lr'],
-    #     "epochs": exp_dict['epochs'],
-    #     "batch_size": exp_dict['bs']
-    # }
+    wandb.init(project="Intellizenz", entity="elsaravana")
+    wandb.config = {
+        "learning_rate": exp_dict['lr'],
+        "epochs": exp_dict['epochs'],
+        "batch_size": exp_dict['bs']
+    }
 
     data_path = column.data_path_2016_2020_v3
     df = pd.read_parquet(data_path)
@@ -97,7 +97,7 @@ def slash_tabnet(exp_name, exp_dict):
     print('The index is: ',index_of_tarif)
     print('The label encoded value is: ',all_tarifs_le[index_of_tarif])
 
-    df_sampled = df_sampled[df_sampled['tarif_bez']==50][:3]
+    # df_sampled = df_sampled[df_sampled['tarif_bez']==50][:3]
 
     train_df, test_df = train_test_split(df_sampled, test_size=0.2, random_state=1)
     print('Length of train df: ',len(train_df))
@@ -144,16 +144,15 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
 
     startTime = time.time()
 
-# sampler=weighted_sampler,
     # Return n batches, where each batch contain exp_dict['bs'] values. Each value has a tensor of features and its target value event(veranst) segment(from 0 to 2)
-    train_data_loader = torch.utils.data.DataLoader(Intellizenz(df=train_df), batch_size=exp_dict['bs'], shuffle=False)
-    # train_data_loader = torch.utils.data.DataLoader(Intellizenz(df=train_df), batch_size=2, sampler=weighted_sampler)
+    # train_data_loader = torch.utils.data.DataLoader(Intellizenz(df=train_df), batch_size=exp_dict['bs'], shuffle=False)
+    train_data_loader = torch.utils.data.DataLoader(Intellizenz(df=train_df), batch_size=exp_dict['bs'], sampler=weighted_sampler)
 
     train_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=train_df), batch_size=exp_dict['bs'], sampler=weighted_sampler)
     test_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=test_df), batch_size=exp_dict['bs'], sampler=test_weighted_sampler)
 
-    # test_data_loader = torch.utils.data.DataLoader(Intellizenz_Test(df=test_df), batch_size=exp_dict['bs'], sampler=test_weighted_sampler)
-    test_data_loader = torch.utils.data.DataLoader(Intellizenz_Test(df=test_df), batch_size=exp_dict['bs'], shuffle=False)
+    test_data_loader = torch.utils.data.DataLoader(Intellizenz_Test(df=test_df), batch_size=exp_dict['bs'], sampler=test_weighted_sampler)
+    # test_data_loader = torch.utils.data.DataLoader(Intellizenz_Test(df=test_df), batch_size=exp_dict['bs'], shuffle=False)
     
     start_e= 0
     if exp_dict['resume']:
@@ -182,18 +181,18 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
         time_test = time.time()
 
         # To see gradients of the weights as histograms in the 
-        # wandb.watch(model)
+        wandb.watch(model)
 
         #test accuracy
         train_acc, _, _, _, _ = SLASHobj.testNetwork('tabnet_vgsegment', train_loader, ret_confusion=False)
-        test_acc, _, preds, targets, probas = SLASHobj.testNetwork('tabnet_vgsegment', test_loader, ret_confusion=False)
-        print('The preds: ',preds)
-        print('The targets: ',targets)
+        # test_acc, _, preds, targets, probas = SLASHobj.testNetwork('tabnet_vgsegment', test_loader, ret_confusion=False)
+        # print('The preds: ',preds)
+        # print('The targets: ',targets)
 
         
-        qtest_acc, _, qpreds, qtargets, qprobas = SLASHobj.testNetworkWithQuery('tabnet_vgsegment', test_data_loader, ret_confusion=False)
-        print('The queryed predictions: ',qpreds)
-        print('The queryed actual targets: ',qtargets)
+        test_acc, _, preds, targets, probas = SLASHobj.testNetworkWithQuery('tabnet_vgsegment', test_data_loader, ret_confusion=False)
+        # print('The queryed predictions: ',qpreds)
+        # print('The queryed actual targets: ',qtargets)
 
         print("Test Accuracy:",test_acc)
         print("Train Accuracy:",train_acc)
@@ -204,17 +203,17 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
         flatten_list_two_dim = lambda y:[x for a in y for x in a] if type(y) is list else [y]
         probas = flatten_list_two_dim(probas)
 
-        # wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
-        #                     preds=preds, y_true=targets,
-        #                     class_names=[0, 1, 2])})
-        # wandb.log({"pr" : wandb.plot.pr_curve(y_true=targets, y_probas=probas,
-        #              labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
-        # wandb.log({"roc" : wandb.plot.roc_curve(y_true=targets, y_probas=probas,
-        #                 labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
+                            preds=preds, y_true=targets,
+                            class_names=[0, 1, 2])})
+        wandb.log({"pr" : wandb.plot.pr_curve(y_true=targets, y_probas=probas,
+                     labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        wandb.log({"roc" : wandb.plot.roc_curve(y_true=targets, y_probas=probas,
+                        labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
         
-        # wandb.log({"train_loss": total_loss, 
-        #             "train_accuracy": train_acc,
-        #             "test_accuracy": test_acc})
+        wandb.log({"train_loss": total_loss, 
+                    "train_accuracy": train_acc,
+                    "test_accuracy": test_acc})
         
         timestamp_train = utils.time_delta_now(time_train)
         timestamp_test = utils.time_delta_now(time_test)

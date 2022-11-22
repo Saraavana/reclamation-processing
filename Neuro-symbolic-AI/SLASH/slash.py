@@ -127,28 +127,9 @@ def compute_gradients_splitwise(networkOutput_split, query_batch_split, mvpp, n,
             check = False
 
             query, _ = replace_plus_minus_occurences(query)
-            print('Train query: .........',query)
 
-            tarif_id = ''
             if method == 'exact': #default exact
                 gradients, models = dmvpp.gradients_one_query(query, opt=opt) # returns stable mobels and the gradients
-                tarif_str = query.split("\n")[1]
-                tarif_id = re.findall(r'\b\d+\b', tarif_str)[0]
-
-                proba_1 = dmvpp.sum_probability_for_stable_models(models)
-                print('Train probability with tarif and event query: ',proba_1)
-                print('Train stabel models with tarif and events are: ',models)
-
-                print('--------------------------------------------------------')
-                # gradients_2, models_2 = dmvpp.gradients_one_query(':- tarif(50).', opt=False) # returns stable mobels and the gradients
-                gradients_2, models_2 = dmvpp.gradients_one_query(':- not event(t1,2).', opt=False) # returns stable mobels and the gradients
-                print('Train stabel models with only events are: ',models_2)
-                proba_2 = dmvpp.sum_probability_for_stable_models(models_2)
-                print('Train probability with only event query: ',proba_2)
-
-                print('#########################################################')
-
-                
             elif method == 'slot':
                 models = dmvpp.find_one_most_probable_SM_under_query_noWC(query)
                 gradients = dmvpp.mvppLearn(models)
@@ -169,12 +150,6 @@ def compute_gradients_splitwise(networkOutput_split, query_batch_split, mvpp, n,
                 print('Error: the method \'%s\' should be either \'exact\' or \'sampling\'', method)
             
             prob_q = dmvpp.sum_probability_for_stable_models(models)
-
-            
-            # if tarif_id == '50' and bidx==0 and iter == 0: 
-            #     print('Models: ',models)
-            #     print('Gradients: ',gradients)
-            #     print('Probabilities: ',prob_q)
             
             model_batch_list_split.append(models)
             gradient_batch_list_split.append(gradients)
@@ -698,8 +673,6 @@ class SLASH(object):
                 self.stableModels = model_batch_list
                 self.prob_q = prob_q_batch_list
 
-                print('The probabilites for training batch are: ',self.prob_q)
-
                 # Step 3: update parameters in neural networks
                 step2 = time.time()
                 asp_time += step2 - step1
@@ -718,8 +691,6 @@ class SLASH(object):
                             networkOutput_stacked.append(networkOutput[m][o][t])
 
                 networkOutput_stacked = pad_3d_tensor(networkOutput_stacked, 'torch', len(query_batch),self.mvpp['networkPrRuleNum'],self.max_n)
-
-                print('The network stacked outputs are: ',networkOutput_stacked)
 
                 #multiply every probability with its gradient 
                 result = torch.einsum("bjc, jbc -> bjc", gradient_batch_list, networkOutput_stacked)
@@ -836,6 +807,8 @@ class SLASH(object):
                 # target = labels[i]               
                 output = self.networkMapping[network](data.to(self.device))
                 probas.append(output.cpu().detach().tolist())
+                # print('The length of output : ', len(output.cpu().detach().tolist()))
+                # print('The length of probas : ', len(probas))
                 # The domain is:  {'tabnet_vgsegment': ['0', '1', '2']}
                 # The n value is:  {'tabnet_vgsegment': 3} #Length of domain(number of classes in domain)
                 if len(self.n) != 0 and self.n[network] > 2 :
@@ -899,12 +872,18 @@ class SLASH(object):
         probas = []
         with torch.no_grad():
             #iterate over all queries
-            for bidx, loader in enumerate(testLoader):
-                data_tensor = loader[0]['t1']
-                target = loader[1]          
-                query = loader[2]
+            # for bidx, loader in enumerate(testLoader):
+            for data, target_bt, query_bt in testLoader:
+                # data_tensor_batch = loader[0]['t1']
+                # target_batch = loader[1]          
+                # query_batch = loader[2]
 
-                output = self.networkMapping[network](data_tensor.to(self.device))
+                data_tensor_batch = data['t1']
+                target_batch = target_bt          
+                query_batch = query_bt
+
+                output = self.networkMapping[network](data_tensor_batch.to(self.device))
+                probas.append(output.cpu().detach().tolist())
 
                 dmvpp = MVPP(self.mvpp['program'])
                 # dmvpp.parameters = [[0.33333, 0.33333, 0.33333]]       
@@ -912,29 +891,30 @@ class SLASH(object):
                 for ruleIdx in range(self.mvpp['networkPrRuleNum']):
                     reshaped_output = [torch.Tensor(np.array(each)) for each in output.cpu().detach().numpy().flatten()]
                     dmvpp.parameters[ruleIdx] = reshaped_output
-
-                #Remove following '()', from query
-                query = str(query)[2:-3]
-                query, _ = replace_plus_minus_occurences(query)
-
                 
-                gradients, models = dmvpp.gradients_one_query(query, opt=False) # returns stable mobels and the gradients
-                # print('Test stable models are: ',models)
-                prob_q = dmvpp.sum_probability_for_stable_models(models)
-                # print('Test probability with only tarif: ',prob_q)
-                # print('Test gradients with only tarif: ',gradients)
-                
-                probas.append(output.cpu().detach().numpy())
+
                 # The domain is:  {'tabnet_vgsegment': ['0', '1', '2']}
                 # The n value is:  {'tabnet_vgsegment': 3}
                 # If number of classes in domain greater than 2, then it's multi-class classification
                 if len(self.n) != 0 and self.n[network] > 2 :
                     pred = output.argmax(dim=-1, keepdim=True) # get the index of the max log-probability
-                    target = target.to(self.device).view_as(pred)
+                    target = target_batch.to(self.device).view_as(pred)
 
-                    # if the query contains, tarif id-50, set the prediction to class 2
-                    if 'tarif(50)' in str(query):
-                        pred = torch.Tensor([2]).to(self.device)
+                    # # if the query contains, tarif id-50, set the prediction to class 2
+                    for batch_idx in range(len(query_batch)):
+                        query = query_batch[batch_idx]
+                        #Remove following '()', from query
+                        # print('The query: ',query)
+                        # query = str(query)[2:-3]
+                        # query, _ = replace_plus_minus_occurences(query)
+                        
+                        # gradients, models = dmvpp.gradients_one_query(query, opt=False) # returns stable mobels and the gradients
+                        # # print('Test stable models are: ',models)
+                        # prob_q = dmvpp.sum_probability_for_stable_models(models)
+                        # print('Test probability with only tarif: ',prob_q)
+                        # print('Test gradients with only tarif: ',gradients)
+                        if 'tarif(50)' in str(query) and pred[batch_idx].int().flatten().cpu().numpy()!=[2]:
+                            pred[batch_idx] = torch.Tensor([2]).to(self.device)
 
                     correctionMatrix = (target.int() == pred.int()).view(target.shape[0], -1)
                     y_target = np.concatenate( (y_target, target.int().flatten().cpu() ))
@@ -951,6 +931,7 @@ class SLASH(object):
                     
                     correct += (pred.reshape(target.shape) == target).sum()
                     total += len(pred)
+
         accuracy = correct / total
 
         if len(self.n) != 0 and self.n[network] > 2:

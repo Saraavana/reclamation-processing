@@ -102,7 +102,7 @@ class Intellizenz_Test(Dataset):
         data = {'t1':dataTensor}
         target = int(self.y[index])
 
-        query = ":- tarif({}).".format(self.tarif[index])
+        query = "tarif({}).".format(self.tarif[index])
         # query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),self.tarif[index])
 
         return data, target, query
