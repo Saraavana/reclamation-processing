@@ -38,8 +38,22 @@ event(T,C) :- tabnet_vgsegment(0,+T,-C).
 
 '''
 
+# program ='''
+# row(t1).
+# tarif(ta1).
+
+# npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
+# event(TA,0) :- tabnet_vgsegment(0,T+,-C), tarif(TA), TA!=50.
+# event(TA,1) :- tabnet_vgsegment(0,T+,-C), tarif(TA), TA!=50.
+# event(TA,2) :- tarif(TA), not event(TA,0), not event(TA,0).
+
+# '''
+
+# :- event(TA,C), tarif(TA), TA=50, C=1.
+# :- event(TA,C), tarif(TA), TA=50, C=0.
+
 #event(TA,C) :- tabnet_vgsegment(0,T+,-C), tarif(TA), TA=50, C!=1, C!=0
-# tari(ta)
+# tarif(ta)
 
 # For every row(datatensor t1) there is a set of probabilities of stable models from tabnet_vgsegment.
 # each data tensor t1 belongs to a class C
@@ -138,7 +152,8 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
     train_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=train_df), batch_size=exp_dict['bs'], sampler=weighted_sampler)
     test_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=test_df), batch_size=exp_dict['bs'], sampler=test_weighted_sampler)
 
-    test_data_loader = torch.utils.data.DataLoader(Intellizenz_Test(df=test_df), batch_size=exp_dict['bs'], sampler=test_weighted_sampler)
+    # test_data_loader = torch.utils.data.DataLoader(Intellizenz_Test(df=test_df), batch_size=exp_dict['bs'], sampler=test_weighted_sampler)
+    test_data_loader = torch.utils.data.DataLoader(Intellizenz_Test(df=test_df), batch_size=exp_dict['bs'], shuffle=False)
     
     start_e= 0
     if exp_dict['resume']:
@@ -177,8 +192,8 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
 
         
         qtest_acc, _, qpreds, qtargets, qprobas = SLASHobj.testNetworkWithQuery('tabnet_vgsegment', test_data_loader, ret_confusion=False)
-        print('The queryed preds: ',qpreds)
-        print('The queryed targets: ',qtargets)
+        print('The queryed predictions: ',qpreds)
+        print('The queryed actual targets: ',qtargets)
 
         print("Test Accuracy:",test_acc)
         print("Train Accuracy:",train_acc)

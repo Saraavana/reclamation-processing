@@ -40,9 +40,10 @@ class Intellizenz(Dataset):
 
         # data = {'t1':dataTensor, 'ta1':self.tarif[index]}
         data = {'t1':dataTensor}
-
+        ta1 = self.tarif[index]
         # query = ":- not event(t1,{}). ".format(int(self.y[index]))
         query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),self.tarif[index])
+        # query = ":- not event({},{}). \ntarif({}).".format(ta1,int(self.y[index]),self.tarif[index])
 
         return data, query
 
@@ -100,9 +101,24 @@ class Intellizenz_Test(Dataset):
         dataTensor = self.X[index] #dataTensor shape would be [140]
 
         # data = {'t1':dataTensor, 'ta1':self.tarif[index]}
-        data = {'t1':dataTensor,'target': int(self.y[index])}
+        # data = {'t1':dataTensor,'target': int(self.y[index])}
+        # data = dataTensor
+        data = {'t1':dataTensor}
+        target = int(self.y[index])
 
-        # query = ":- not event(t1,{}). ".format(int(self.y[index]))
-        query = ":- tarif({}).".format(self.tarif[index])
+        # # query = ":- not event(t1,{}).".format(int(self.y[index]))
+        # query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),self.tarif[index])
+        # # query = ":- tarif({}).".format(self.tarif[index])
+        query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),self.tarif[index])
 
-        return data, query
+        return data, target, query
+
+        # data = {'t1':dataTensor}
+        # ta1 = self.tarif[index]
+        # # query = ":- not event(t1,{}). ".format(int(self.y[index]))
+        # # query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),self.tarif[index])
+        # query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),self.tarif[index])
+        # # query = ":- not event({},{}). \ntarif({}).".format(ta1,int(self.y[index]),self.tarif[index])
+
+        # return data, query
+

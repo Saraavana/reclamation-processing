@@ -328,7 +328,7 @@ class MVPP(object):
                     gradients.append(-1.0)
             for i, cEqualsVi in enumerate(self.pc[ruleIdx]):
                 if p != 0:     
-                    if not isinstance(p,torch.Tensor) :   
+                    if not isinstance(p,torch.Tensor) :
                         p = torch.Tensor([p])         
                     gradients[i] = gradients[i]/torch.min(torch.Tensor([1]),p+self.eps)
                     #gradients[i] = gradients[i]/p
