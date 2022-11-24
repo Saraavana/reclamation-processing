@@ -729,8 +729,8 @@ class SLASH(object):
                 # poon domingo 
                 # RAD - SPN for narrow, and deep tree and repetition N
                 else:
-                    # result_nll = -result_ll
-                    result_nll = (-result_ll).pow(2)
+                    result_nll = -result_ll
+                    # result_nll = (-result_ll).pow(2)
                     
                     #reset optimizers
                     for midx, m in enumerate(self.optimizers):
