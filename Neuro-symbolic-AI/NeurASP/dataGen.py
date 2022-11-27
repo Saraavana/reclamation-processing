@@ -194,7 +194,8 @@ for data_batch, label_batch, tarif_batch in train_loader:
             data = {'t1':x}
 
             # query = ":- not event(t1,{}). ".format(int(y))
-            query = ":- not event(t1,{}). \ntarif({}).".format(int(y),tarif)
+            # query = ":- not event(t1,{}). \ntarif({}).".format(int(y),tarif)
+            query = ":- not event({},{}). \ntarif({}).".format(tarif,int(y),tarif)
 
             dataList.append(data)
             queryList.append(query)

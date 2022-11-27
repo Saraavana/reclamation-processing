@@ -22,15 +22,26 @@ start_time = time.time()
 
 # '''
 
+# program ='''
+# row(t1).
+
+# nn(vgsegment(1,T),[0,1,2]) :- row(T).
+# event(T,C) :- vgsegment(0,T,C).
+
+# :- event(T,C), tarif(TA), TA=50, C=0 .
+# :- event(T,C), tarif(TA), TA=50, C=1 . 
+
+# '''
+
 program ='''
 row(t1).
 
 nn(vgsegment(1,T),[0,1,2]) :- row(T).
 event(T,C) :- vgsegment(0,T,C).
 
-:- event(T,C), tarif(TA), TA=50, C=0 .
-:- event(T,C), tarif(TA), TA=50, C=1 . 
 
+event(TA,0) :- vgsegment(0,T,C), tarif(TA), TA!=50.
+event(TA,1) :- vgsegment(0,T,C), tarif(TA), TA!=50.
 '''
 
 

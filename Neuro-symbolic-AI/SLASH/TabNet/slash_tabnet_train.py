@@ -27,20 +27,41 @@ from sklearn.preprocessing import LabelEncoder
 #############################
 # SLASH program
 #############################
+# program ='''
+# row(t1).
+
+# npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
+# event(T,C) :- tabnet_vgsegment(0,+T,-C).
+
+# :- event(T,C), tarif(TA), TA=50, C=0 .
+# :- event(T,C), tarif(TA), TA=50, C=1 . 
+
+# '''
+
+# program ='''
+# row(t1).
+
+# npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
+# event(T,TA,C) :- tabnet_vgsegment(0,+T,-C), tarif(TA).
+
+# :- event(T,TA,C), tarif(TA), TA=50, C=0.
+# :- event(T,TA,C), tarif(TA), TA=50, C=1.
+# '''
+
 program ='''
 row(t1).
 
 npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
-event(T,C) :- tabnet_vgsegment(0,+T,-C).
+event(TA,C) :- tabnet_vgsegment(0,+T,-C), tarif(TA).
 
-:- event(T,C), tarif(TA), TA=50, C=0 .
-:- event(T,C), tarif(TA), TA=50, C=1 . 
-
+:- event(TA,C), TA=50, C=0.
+:- event(TA,C), TA=50, C=1.
 '''
 
+
+# event(TA,1) :- tabnet_vgsegment(0,T+,-C), tarif(TA), TA!=50.
 # program ='''
 # row(t1).
-# tarif(ta1).
 
 # npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
 # event(TA,0) :- tabnet_vgsegment(0,T+,-C), tarif(TA), TA!=50.
@@ -48,6 +69,7 @@ event(T,C) :- tabnet_vgsegment(0,+T,-C).
 # event(TA,2) :- tarif(TA), not event(TA,0), not event(TA,0).
 
 # '''
+
 
 # :- event(TA,C), tarif(TA), TA=50, C=1.
 # :- event(TA,C), tarif(TA), TA=50, C=0.
@@ -74,12 +96,12 @@ def slash_tabnet(exp_name, exp_dict):
 
     print("Experiment parameters:", exp_dict)
 
-    wandb.init(project="Intellizenz", entity="elsaravana")
-    wandb.config = {
-        "learning_rate": exp_dict['lr'],
-        "epochs": exp_dict['epochs'],
-        "batch_size": exp_dict['bs']
-    }
+    # wandb.init(project="Intellizenz", entity="elsaravana")
+    # wandb.config = {
+    #     "learning_rate": exp_dict['lr'],
+    #     "epochs": exp_dict['epochs'],
+    #     "batch_size": exp_dict['bs']
+    # }
 
     data_path = column.data_path_2016_2020_v3
     df = pd.read_parquet(data_path)
@@ -97,7 +119,7 @@ def slash_tabnet(exp_name, exp_dict):
     print('The index is: ',index_of_tarif)
     print('The label encoded value is: ',all_tarifs_le[index_of_tarif])
 
-    # df_sampled = df_sampled[df_sampled['tarif_bez']==50][:3]
+    df_sampled = df_sampled[df_sampled['tarif_bez']==50][:3]
 
     train_df, test_df = train_test_split(df_sampled, test_size=0.2, random_state=1)
     print('Length of train df: ',len(train_df))
@@ -124,7 +146,7 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
 
     
     print("training with {}({}) trainable params and {}({}) params in total".format(np.sum(num_trainable_params),num_trainable_params,np.sum(num_params),num_params)) 
-    
+
     ########
     # Define nnMapping and optimizers, initialze SLASH object
     ########
@@ -181,7 +203,7 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
         time_test = time.time()
 
         # To see gradients of the weights as histograms in the 
-        wandb.watch(model)
+        # wandb.watch(model)
 
         #test accuracy
         train_acc, _, _, _, _ = SLASHobj.testNetwork('tabnet_vgsegment', train_loader, ret_confusion=False)
@@ -203,17 +225,17 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
         flatten_list_two_dim = lambda y:[x for a in y for x in a] if type(y) is list else [y]
         probas = flatten_list_two_dim(probas)
 
-        wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
-                            preds=preds, y_true=targets,
-                            class_names=[0, 1, 2])})
-        wandb.log({"pr" : wandb.plot.pr_curve(y_true=targets, y_probas=probas,
-                     labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
-        wandb.log({"roc" : wandb.plot.roc_curve(y_true=targets, y_probas=probas,
-                        labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        # wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
+        #                     preds=preds, y_true=targets,
+        #                     class_names=[0, 1, 2])})
+        # wandb.log({"pr" : wandb.plot.pr_curve(y_true=targets, y_probas=probas,
+        #              labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        # wandb.log({"roc" : wandb.plot.roc_curve(y_true=targets, y_probas=probas,
+        #                 labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
         
-        wandb.log({"train_loss": total_loss, 
-                    "train_accuracy": train_acc,
-                    "test_accuracy": test_acc})
+        # wandb.log({"train_loss": total_loss, 
+        #             "train_accuracy": train_acc,
+        #             "test_accuracy": test_acc})
         
         timestamp_train = utils.time_delta_now(time_train)
         timestamp_test = utils.time_delta_now(time_test)
