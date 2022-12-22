@@ -886,11 +886,7 @@ class SLASH(object):
                 probas.append(output.cpu().detach().tolist())
 
                 dmvpp = MVPP(self.mvpp['program'])
-                # dmvpp.parameters = [[0.33333, 0.33333, 0.33333]]       
-
-                for ruleIdx in range(self.mvpp['networkPrRuleNum']):
-                    reshaped_output = [torch.Tensor(np.array(each)) for each in output.cpu().detach().numpy().flatten()]
-                    dmvpp.parameters[ruleIdx] = reshaped_output
+                # dmvpp.parameters = [[0.33333, 0.33333, 0.33333]]   
                 
                 
                 stable_mmodels = dmvpp.find_one_most_probable_SM_under_query_noWC(query='tarif(50).')
@@ -899,16 +895,8 @@ class SLASH(object):
                 print('The correct probability of true class is: ',stable_model_probs)
                 print('The predicted probability is: ',output)
 
-                
                 output_list = [each for each_list in output.tolist() for each in each_list]
                 index_of_output_prob_with_query = output_list.index(stable_model_probs.item())
-                pred_with_query = torch.Tensor([[index_of_output_prob_with_query]]).to(self.device)
-
-                fadstarget = target_batch.to(self.device).view_as(pred_with_query)
-                print('The target int value is: ',fadstarget.int())
-
-                
-                
 
                 # The domain is:  {'tabnet_vgsegment': ['0', '1', '2']}
                 # The n value is:  {'tabnet_vgsegment': 3}
@@ -917,22 +905,6 @@ class SLASH(object):
                     # pred = output.argmax(dim=-1, keepdim=True) # get the index of the max log-probability
                     pred = torch.Tensor([[index_of_output_prob_with_query]]).to(self.device)
                     target = target_batch.to(self.device).view_as(pred)
-
-                    # # # if the query contains, tarif id-50, set the prediction to class 2
-                    # for batch_idx in range(len(query_batch)):
-                    #     query = query_batch[batch_idx]
-                    #     #Remove following '()', from query
-                    #     # print('The query: ',query)
-                    #     # query = str(query)[2:-3]
-                    #     # query, _ = replace_plus_minus_occurences(query)
-                        
-                    #     # gradients, models = dmvpp.gradients_one_query(query, opt=False) # returns stable mobels and the gradients
-                    #     # # print('Test stable models are: ',models)
-                    #     # prob_q = dmvpp.sum_probability_for_stable_models(models)
-                    #     # print('Test probability with only tarif: ',prob_q)
-                    #     # print('Test gradients with only tarif: ',gradients)
-                    #     if 'tarif(50)' in str(query) and pred[batch_idx].int().flatten().cpu().numpy()!=[2]:
-                    #         pred[batch_idx] = torch.Tensor([2]).to(self.device)
 
                     correctionMatrix = (target.int() == pred.int()).view(target.shape[0], -1)
                     y_target = np.concatenate( (y_target, target.int().flatten().cpu() ))

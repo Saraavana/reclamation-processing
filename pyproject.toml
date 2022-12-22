@@ -32,6 +32,9 @@ spacy = "^3.4.2"
 fastparquet = "^0.8.3"
 pyarrow = "^9.0.0"
 wandb = "^0.13.5"
+Faker = "^15.3.4"
+presidio-analyzer = "^2.2.31"
+presidio-anonymizer = "^2.2.31"
 
 [[tool.poetry.source]]
 name = "torch"
