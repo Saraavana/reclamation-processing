@@ -1,0 +1,4 @@
+outs:
+- md5: eb1cfd576caca50065df3334b6313761
+  size: 79613095
+  path: export_train_venue_descr_stats_2016_2020_v2.parquet.gzip
