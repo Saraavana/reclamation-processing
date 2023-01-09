@@ -1,0 +1,4 @@
+outs:
+- md5: 7bfb92ddb668496a26a20516aa39a051
+  size: 272567827
+  path: export_features_2016_2020_v5.parquet.gzip

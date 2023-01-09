@@ -22,3 +22,4 @@
 /export_training_features_2016_2020_v1.parquet.gzip
 /export_testing_features_2016_2020_v1.parquet.gzip
 /export_features_2016_2020_v4.parquet.gzip
+/export_features_2016_2020_v5.parquet.gzip
