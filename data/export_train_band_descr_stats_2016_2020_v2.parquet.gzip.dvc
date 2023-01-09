@@ -1,0 +1,4 @@
+outs:
+- md5: d086d6e173ee3bc1438c81118ab9862e
+  size: 83957181
+  path: export_train_band_descr_stats_2016_2020_v2.parquet.gzip
