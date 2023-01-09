@@ -1,0 +1,4 @@
+outs:
+- md5: a8ce98d9fd17eaf0e3db0916c9a0e40a
+  size: 21268881
+  path: export_test_venue_descr_stats_2016_2020_v2.parquet.gzip
