@@ -29,3 +29,4 @@
 /export_training_features_2016_2020_v2.parquet.gzip
 /export_testing_features_2016_2020_v2.parquet.gzip
 /export_train_band_descr_stats_2016_2020_v2.parquet.gzip
+/export_train_promoter_descr_stats_2016_2020_v2.parquet.gzip
