@@ -1,4 +1,10 @@
 data_path_2016_2020_v3 = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v3.parquet.gzip'
+train_data_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_training_features_2016_2020_v2.parquet.gzip'
+test_data_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_testing_features_2016_2020_v2.parquet.gzip'
+
+data_path_2016_2020_v4 = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v4.parquet.gzip'
+data_path_2016_2020_v5 = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v5.parquet.gzip'
+
 
 features_v1 = [
             'place_kirche', 'place_hotel', 'place_cafe',
@@ -312,3 +318,55 @@ features_v5 = ['place_kirche', 'place_hotel', 'place_cafe',
 
 'veranst_segment','vg_inkasso', 'tarif_bez'
 ]
+
+# 80 Feautes used - Leave-one-out-target-encoded 'band', 'promoter', 'venue' &
+# 'vg_inkasso', 'veranst_segment', 'vg_state', 'vg_datum_year', 
+#  'vg_datum_month', 'vg_datum_day_of_week', 'vg_datum_season', 'tarif_bez'
+features_v6 = [
+    'venue_10%', 'venue_15%', 'venue_20%', 'venue_25%', 'venue_30%', 
+    'venue_35%', 'venue_40%', 'venue_45%', 'venue_5%', 'venue_50%', 
+    'venue_55%', 'venue_60%', 'venue_65%', 'venue_70%', 'venue_75%', 
+    'venue_80%', 'venue_85%', 'venue_90%', 'venue_95%', 'venue_count', 
+    'venue_max', 'venue_mean', 'venue_min', 'venue_std', 
+    
+    'band_10%', 'band_15%', 'band_20%', 'band_25%', 'band_30%', 
+    'band_35%', 'band_40%', 'band_45%', 'band_5%', 'band_50%', 
+    'band_55%', 'band_60%', 'band_65%', 'band_70%', 'band_75%', 
+    'band_80%', 'band_85%', 'band_90%', 'band_95%', 'band_count', 
+    'band_max', 'band_mean', 'band_min', 'band_std', 
+
+    'promoter_10%', 'promoter_15%', 'promoter_20%', 'promoter_25%', 'promoter_30%', 
+    'promoter_35%', 'promoter_40%', 'promoter_45%', 'promoter_5%', 'promoter_50%', 
+    'promoter_55%', 'promoter_60%', 'promoter_65%', 'promoter_70%', 'promoter_75%', 
+    'promoter_80%', 'promoter_85%', 'promoter_90%', 'promoter_95%', 'promoter_count', 
+    'promoter_max', 'promoter_mean', 'promoter_min', 'promoter_std',
+    
+    'vg_inkasso', 'veranst_segment', 'vg_state', 'vg_datum_year', 
+    'vg_datum_month', 'vg_datum_day_of_week', 'vg_datum_season', 'tarif_bez'
+    ]
+
+# 77 Feautes used - Leave-one-out-target-encoded 'band', 'promoter', 'venue' &
+#  'vg_state', 'vg_datum_year', 
+#  'vg_datum_month', 'vg_datum_day_of_week', 'vg_datum_season'
+features_v7 = [
+    'venue_10%', 'venue_15%', 'venue_20%', 'venue_25%', 'venue_30%', 
+    'venue_35%', 'venue_40%', 'venue_45%', 'venue_5%', 'venue_50%', 
+    'venue_55%', 'venue_60%', 'venue_65%', 'venue_70%', 'venue_75%', 
+    'venue_80%', 'venue_85%', 'venue_90%', 'venue_95%', 'venue_count', 
+    'venue_max', 'venue_mean', 'venue_min', 'venue_std', 
+    
+    'band_10%', 'band_15%', 'band_20%', 'band_25%', 'band_30%', 
+    'band_35%', 'band_40%', 'band_45%', 'band_5%', 'band_50%', 
+    'band_55%', 'band_60%', 'band_65%', 'band_70%', 'band_75%', 
+    'band_80%', 'band_85%', 'band_90%', 'band_95%', 'band_count', 
+    'band_max', 'band_mean', 'band_min', 'band_std', 
+
+    'promoter_10%', 'promoter_15%', 'promoter_20%', 'promoter_25%', 'promoter_30%', 
+    'promoter_35%', 'promoter_40%', 'promoter_45%', 'promoter_5%', 'promoter_50%', 
+    'promoter_55%', 'promoter_60%', 'promoter_65%', 'promoter_70%', 'promoter_75%', 
+    'promoter_80%', 'promoter_85%', 'promoter_90%', 'promoter_95%', 'promoter_count', 
+    'promoter_max', 'promoter_mean', 'promoter_min', 'promoter_std',
+    
+    'vg_state', 'vg_datum_year', 
+    'vg_datum_month', 'vg_datum_day_of_week', 'vg_datum_season'
+    ]

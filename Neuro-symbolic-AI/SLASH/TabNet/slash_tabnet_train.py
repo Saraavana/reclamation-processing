@@ -54,10 +54,15 @@ row(t1).
 npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
 event(TA,C) :- tabnet_vgsegment(0,+T,-C), tarif(TA).
 
-:- event(TA,C), TA=50, C=0.
-:- event(TA,C), TA=50, C=1.
+:- event(TA,C), TA=51, C=0.
+:- event(TA,C), TA=51, C=1.
 '''
 
+# For 70k data - TA = 50
+# For 100k data - TA - 51
+# For 200k data - TA - 54
+# For 300k data - TA - 56
+# For 1.7M data - TA - 58
 
 # event(TA,1) :- tabnet_vgsegment(0,T+,-C), tarif(TA), TA!=50.
 # program ='''
@@ -96,18 +101,27 @@ def slash_tabnet(exp_name, exp_dict):
 
     print("Experiment parameters:", exp_dict)
 
-    # wandb.init(project="Intellizenz", entity="elsaravana")
-    # wandb.config = {
-    #     "learning_rate": exp_dict['lr'],
-    #     "epochs": exp_dict['epochs'],
-    #     "batch_size": exp_dict['bs']
-    # }
+    wandb.init(project="Intellizenz", entity="elsaravana")
+    # wandb.init(id="zqwqu6ho", project="Intellizenz", resume=True, entity="elsaravana")
+    
+    wandb.config = {
+        "learning_rate": exp_dict['lr'],
+        "epochs": exp_dict['epochs'],
+        "batch_size": exp_dict['bs']
+    }
 
-    data_path = column.data_path_2016_2020_v3
+    # data_path = column.data_path_2016_2020_v3
+    # data_path = column.data_path_2016_2020_v4
+    data_path = column.data_path_2016_2020_v5
     df = pd.read_parquet(data_path)
 
     class_frequency = df.groupby('veranst_segment')['veranst_segment'].transform('count')
-    df_sampled = df.sample(n=70000, weights=class_frequency, random_state=2)
+    # df_sampled = df.sample(n=70000, weights=class_frequency, random_state=2)
+    df_sampled = df.sample(n=100000, weights=class_frequency, random_state=2)
+    # df_sampled = df.sample(n=200000, weights=class_frequency, random_state=2)
+    # df_sampled = df.sample(n=300000, weights=class_frequency, random_state=2)
+    # df_sampled = df.copy()
+
 
     le = LabelEncoder()
     df_sampled['tarif_bez'] = le.fit_transform(df_sampled['tarif_bez'])
@@ -119,7 +133,7 @@ def slash_tabnet(exp_name, exp_dict):
     print('The index is: ',index_of_tarif)
     print('The label encoded value is: ',all_tarifs_le[index_of_tarif])
 
-    df_sampled = df_sampled[df_sampled['tarif_bez']==50][:3]
+    # df_sampled = df_sampled[df_sampled['tarif_bez']==50][:3]
 
     train_df, test_df = train_test_split(df_sampled, test_size=0.2, random_state=1)
     print('Length of train df: ',len(train_df))
@@ -127,7 +141,14 @@ def slash_tabnet(exp_name, exp_dict):
 
     #NETWORKS
     if exp_dict['credentials']=='STN':
-        model = TabNetClass(input_dim=140, output_dim= 3,
+        # model = TabNetClass(input_dim=140, output_dim= 3,
+        #                     n_d=64, n_a=64, n_steps=5,
+        #                     gamma=1.5, n_independent=2, n_shared=2,
+        #                     cat_emb_dim=1,
+        #                     lambda_sparse=1e-4, momentum=0.3,
+        #                     epsilon=1e-15, virtual_batch_size=exp_dict['bs']/8
+        #                     )
+        model = TabNetClass(input_dim=77, output_dim= 3,
                             n_d=64, n_a=64, n_steps=5,
                             gamma=1.5, n_independent=2, n_shared=2,
                             cat_emb_dim=1,
@@ -173,16 +194,18 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
     train_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=train_df), batch_size=exp_dict['bs'], sampler=weighted_sampler)
     test_loader = torch.utils.data.DataLoader(Intellizenz_Data(df=test_df), batch_size=exp_dict['bs'], sampler=test_weighted_sampler)
 
-    test_data_loader = torch.utils.data.DataLoader(Intellizenz_Test(df=test_df), batch_size=exp_dict['bs'], sampler=test_weighted_sampler)
+    # test_data_loader = torch.utils.data.DataLoader(Intellizenz_Test(df=test_df), batch_size=exp_dict['bs'], sampler=test_weighted_sampler)
     # test_data_loader = torch.utils.data.DataLoader(Intellizenz_Test(df=test_df), batch_size=exp_dict['bs'], shuffle=False)
     
     start_e= 0
     if exp_dict['resume']:
         print("resuming experiment")
         saved_model = torch.load(saveModelPath)
-        
+        print(saveModelPath)
         #load pytorch models
-        model.load_state_dict(saved_model['slash_tabnet'])
+        # model.load_state_dict(saved_model['slash_tabnet'])
+        model.load_state_dict(saved_model['intellizenz_net'])
+        
       
         #optimizers and shedulers
         optimizers['tabnet_vgsegment'].load_state_dict(saved_model['resume']['optimizer_intellizenz'])
@@ -207,12 +230,12 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
 
         #test accuracy
         train_acc, _, _, _, _ = SLASHobj.testNetwork('tabnet_vgsegment', train_loader, ret_confusion=False)
-        # test_acc, _, preds, targets, probas = SLASHobj.testNetwork('tabnet_vgsegment', test_loader, ret_confusion=False)
-        # print('The preds: ',preds)
-        # print('The targets: ',targets)
+        test_acc, _, preds, targets, probas = SLASHobj.testNetwork('tabnet_vgsegment', test_loader, ret_confusion=False)
+        print('The preds: ',preds)
+        print('The targets: ',targets)
 
         
-        test_acc, _, preds, targets, probas = SLASHobj.testNetworkWithQuery('tabnet_vgsegment', test_data_loader, ret_confusion=False)
+        # test_acc, _, preds, targets, probas = SLASHobj.testNetworkWithQuery('tabnet_vgsegment', test_data_loader, ret_confusion=False)
         # print('The queryed predictions: ',qpreds)
         # print('The queryed actual targets: ',qtargets)
 
@@ -225,17 +248,17 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
         flatten_list_two_dim = lambda y:[x for a in y for x in a] if type(y) is list else [y]
         probas = flatten_list_two_dim(probas)
 
-        # wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
-        #                     preds=preds, y_true=targets,
-        #                     class_names=[0, 1, 2])})
-        # wandb.log({"pr" : wandb.plot.pr_curve(y_true=targets, y_probas=probas,
-        #              labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
-        # wandb.log({"roc" : wandb.plot.roc_curve(y_true=targets, y_probas=probas,
-        #                 labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
+                            preds=preds, y_true=targets,
+                            class_names=[0, 1, 2])})
+        wandb.log({"pr" : wandb.plot.pr_curve(y_true=targets, y_probas=probas,
+                     labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+        wandb.log({"roc" : wandb.plot.roc_curve(y_true=targets, y_probas=probas,
+                        labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
         
-        # wandb.log({"train_loss": total_loss, 
-        #             "train_accuracy": train_acc,
-        #             "test_accuracy": test_acc})
+        wandb.log({"train_loss": total_loss, 
+                    "train_accuracy": train_acc,
+                    "test_accuracy": test_acc})
         
         timestamp_train = utils.time_delta_now(time_train)
         timestamp_test = utils.time_delta_now(time_test)
