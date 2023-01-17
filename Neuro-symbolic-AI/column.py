@@ -45,7 +45,7 @@ features_v1 = [
             'veranst_segment','vg_inkasso'
         ]
 
-# 140 Feautes used - 'VG_RAUM_KEYWORDS', 'VG_DATUM_VON', 'vg_state', 'BAND', 'PROMOTER', 'tarifs'
+# 140 Feautes used - 30 common features('VG_RAUM_KEYWORDS', 'BAND', 'PROMOTER', 'tariffs') 'vg_state', 'VG_DATUM_VON'
 features_v2 = ['place_kirche', 'place_hotel', 'place_cafe',
  'place_theater', 'place_club', 'place_halle',
  'place_gaststaette', 'place_festhalle', 'place_kulturzentrum',
