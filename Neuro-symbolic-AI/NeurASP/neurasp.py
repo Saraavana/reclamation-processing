@@ -266,11 +266,11 @@ class NeurASP(object):
             dmvpp = MVPP(self.mvpp['program'])
 
         # #Initialize weights and biases
-        # wandb.init(project="Intellizenz", entity="elsaravana")
-        # wandb.config = {
-        #         "learning_rate": 0.001,
-        #         "epochs": 1
-        # }
+        wandb.init(project="Intellizenz", entity="elsaravana")
+        wandb.config = {
+                "learning_rate": 0.001,
+                "epochs": 1
+        }
 
         # we train all nerual network models
         for m in self.nnMapping:
@@ -279,6 +279,8 @@ class NeurASP(object):
         #save the neural network  such that we can use it later
         saveModelPath = './Neuro-symbolic-AI/NeurASP/data/'+'1_epoch'+'/slash_models.pt'
         Path("./Neuro-symbolic-AI/SLASH/data/"+'1_epoch'+"/").mkdir(parents=True, exist_ok=True)
+        start_time = time.time()
+        
 
         # we train for 'epoch' times of epochs
         for epochIdx in range(epoch):
@@ -306,6 +308,11 @@ class NeurASP(object):
                             dataTensor = data[t]
 
                         nnOutput[m][t] = self.nnMapping[m](dataTensor.to(self.device))
+                        # ####################################
+                        # dataTensor = dataTensor.reshape(64,21)
+                        # print(dataTensor.shape)
+                        # nnOutput[m][t] = self.nnMapping[m].forward(dataTensor.to(self.device))
+                        # ####################################
                         nnOutput[m][t] = torch.clamp(nnOutput[m][t], min=10e-8, max=1.-10e-8)
 
                         self.nnOutputs[m][t] = nnOutput[m][t].view(-1).tolist()
@@ -413,38 +420,40 @@ class NeurASP(object):
 
             print('NN mapping: ',self.nnMapping)
 
-            # #Store the model after every epoch
-            # print('Storing the trained model into {}'.format(saveModelPath))
-            # torch.save({"intellizenz_net":  m.state_dict(), 
-            #             "resume": {
-            #                 # "optimizer_intellizenz":optimizers[nasp_intellizenz].state_dict(),
-            #                 "epoch":1
-            #             },
-            #             "num_params": m.parameters(),
-            #             "time": time_array}, saveModelPath)
+            #Store the model after every epoch
+            current_time = time.time()
+            time_array = [current_time, start_time]
+            m = self.nnMapping['vgsegment'] #model
+
+            print('Storing the trained model into {}'.format(saveModelPath))
+            torch.save({"intellizenz_net":  m.state_dict(), 
+                        "resume": {
+                            "optimizer_intellizenz":self.optimizers['nasp_intellizenz'].state_dict(),
+                            "epoch":epochIdx+1
+                        },
+                        "time": time_array}, saveModelPath)
             
-            # #Logging metrics
-            # # check testing accuracy
-            # m = self.nnMapping['vgsegment'] #model
-            # accuracy, singleAccuracy, y_target, y_pred, probas = testNN(model=m, testLoader=test_loader, device=self.device)
-            # # check training accuracy
-            # accuracyTrain, singleAccuracyTrain, _, _, _ = testNN(model=m, testLoader=train_loader, device=self.device)
+            #Logging metrics
+            # check testing accuracy
+            accuracy, singleAccuracy, y_target, y_pred, probas = testNN(model=m, testLoader=test_loader, device=self.device)
+            # check training accuracy
+            accuracyTrain, singleAccuracyTrain, _, _, _ = testNN(model=m, testLoader=train_loader, device=self.device)
 
-            # probas = [x for sublist in probas for x in sublist] # probas dim-(n_samples, n_classes)
+            probas = [x for sublist in probas for x in sublist] # probas dim-(n_samples, n_classes)
 
-            # wandb.log({"train_accuracy": accuracyTrain,
-            #             "test_accuracy": accuracy})
+            wandb.log({"train_accuracy": accuracyTrain,
+                        "test_accuracy": accuracy})
 
 
-            # wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
-            #                 preds=y_pred, y_true=y_target,
-            #                 class_names=[0, 1, 2])})
-            # wandb.log({"pr" : wandb.plot.pr_curve(y_true=y_target, y_probas=probas,
-            #                 labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
-            # wandb.log({"roc" : wandb.plot.roc_curve(y_true=y_target, y_probas=probas,
-            #                 labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+            wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
+                            preds=y_pred, y_true=y_target,
+                            class_names=[0, 1, 2])})
+            wandb.log({"pr" : wandb.plot.pr_curve(y_true=y_target, y_probas=probas,
+                            labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
+            wandb.log({"roc" : wandb.plot.roc_curve(y_true=y_target, y_probas=probas,
+                            labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
 
-            # print(f'{accuracyTrain:0.2f}\t{accuracy:0.2f}')
+            print(f'{accuracyTrain:0.2f}\t{accuracy:0.2f}')
 
 
     def testNN(self, nn, testLoader):

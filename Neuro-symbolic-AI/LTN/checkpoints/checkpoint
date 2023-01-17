@@ -1,2 +1,2 @@
-model_checkpoint_path: "d1.7m_loote_500ep.ckpt"
-all_model_checkpoint_paths: "d1.7m_loote_500ep.ckpt"
+model_checkpoint_path: "d300k_140features_200ep.ckpt"
+all_model_checkpoint_paths: "d300k_140features_200ep.ckpt"

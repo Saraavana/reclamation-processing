@@ -3,6 +3,8 @@ import torch
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+
+
 class TabNetClass(tab_network.TabNet):
 
     def __init__(self, 
@@ -22,8 +24,7 @@ class TabNetClass(tab_network.TabNet):
                  momentum: float = 0.02,
                  mask_type: str = "sparsemax",
                  device_name: str = device,
-                 lambda_sparse=1e-3
-                 ):
+                 lambda_sparse=1e-3):
         super(tab_network.TabNet, self).__init__()
         self.lamda_sparse = lambda_sparse
         self.tabnet =  tab_network.TabNet(input_dim=input_dim,

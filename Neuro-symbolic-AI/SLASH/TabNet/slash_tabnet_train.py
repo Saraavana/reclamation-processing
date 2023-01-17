@@ -54,10 +54,11 @@ row(t1).
 npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
 event(TA,C) :- tabnet_vgsegment(0,+T,-C), tarif(TA).
 
-:- event(TA,C), TA=51, C=0.
-:- event(TA,C), TA=51, C=1.
+:- event(TA,C), TA=56, C=0.
+:- event(TA,C), TA=56, C=1.
 '''
 
+# For 50k data - TA = 47
 # For 70k data - TA = 50
 # For 100k data - TA - 51
 # For 200k data - TA - 54
@@ -101,14 +102,14 @@ def slash_tabnet(exp_name, exp_dict):
 
     print("Experiment parameters:", exp_dict)
 
-    wandb.init(project="Intellizenz", entity="elsaravana")
-    # wandb.init(id="zqwqu6ho", project="Intellizenz", resume=True, entity="elsaravana")
+    # wandb.init(project="Intellizenz", entity="elsaravana")
+    # # wandb.init(id="zqwqu6ho", project="Intellizenz", resume=True, entity="elsaravana")
     
-    wandb.config = {
-        "learning_rate": exp_dict['lr'],
-        "epochs": exp_dict['epochs'],
-        "batch_size": exp_dict['bs']
-    }
+    # wandb.config = {
+    #     "learning_rate": exp_dict['lr'],
+    #     "epochs": exp_dict['epochs'],
+    #     "batch_size": exp_dict['bs']
+    # }
 
     # data_path = column.data_path_2016_2020_v3
     # data_path = column.data_path_2016_2020_v4
@@ -117,9 +118,10 @@ def slash_tabnet(exp_name, exp_dict):
 
     class_frequency = df.groupby('veranst_segment')['veranst_segment'].transform('count')
     # df_sampled = df.sample(n=70000, weights=class_frequency, random_state=2)
-    df_sampled = df.sample(n=100000, weights=class_frequency, random_state=2)
+    # df_sampled = df.sample(n=50000, weights=class_frequency, random_state=2)
+    # df_sampled = df.sample(n=100000, weights=class_frequency, random_state=2)
     # df_sampled = df.sample(n=200000, weights=class_frequency, random_state=2)
-    # df_sampled = df.sample(n=300000, weights=class_frequency, random_state=2)
+    df_sampled = df.sample(n=300000, weights=class_frequency, random_state=2)
     # df_sampled = df.copy()
 
 
@@ -139,6 +141,18 @@ def slash_tabnet(exp_name, exp_dict):
     print('Length of train df: ',len(train_df))
     print('Length of test df: ',len(test_df))
 
+
+    categorical_columns, categorical_dims = get_cat_columns_and_dims(df_sampled=df_sampled)
+    # feature_columns = column.features_v8
+    # feature_columns = column.features_v9 #9 features - with tarif 
+    feature_columns = column.features_v10 #21 features - with tarif
+
+
+    cat_idxs = [ i for i, f in enumerate(feature_columns) if f in categorical_columns]
+    cat_dims = [ categorical_dims[f] for i, f in enumerate(feature_columns) if f in categorical_columns]
+    print(cat_idxs)
+    print(cat_idxs)
+
     #NETWORKS
     if exp_dict['credentials']=='STN':
         # model = TabNetClass(input_dim=140, output_dim= 3,
@@ -148,17 +162,43 @@ def slash_tabnet(exp_name, exp_dict):
         #                     lambda_sparse=1e-4, momentum=0.3,
         #                     epsilon=1e-15, virtual_batch_size=exp_dict['bs']/8
         #                     )
-        model = TabNetClass(input_dim=77, output_dim= 3,
-                            n_d=64, n_a=64, n_steps=5,
-                            gamma=1.5, n_independent=2, n_shared=2,
-                            cat_emb_dim=1,
-                            lambda_sparse=1e-4, momentum=0.3,
-                            epsilon=1e-15, virtual_batch_size=exp_dict['bs']/8
-                            )
+        # model = TabNetClass(input_dim=77, output_dim= 3,
+        #                     n_d=64, n_a=64, n_steps=5,
+        #                     gamma=1.5, n_independent=2, n_shared=2,
+        #                     cat_emb_dim=1,
+        #                     lambda_sparse=1e-4, momentum=0.3,
+        #                     epsilon=1e-15, virtual_batch_size=exp_dict['bs']/8
+        #                     )
+        model = TabNetClass(input_dim=21, output_dim= 3,
+                           n_d=64, n_a=64, n_steps=5,
+                           gamma=1.5, n_independent=2, n_shared=2,
+                           cat_idxs=cat_idxs,
+                           cat_dims=cat_dims,
+                           cat_emb_dim=2,
+                           lambda_sparse=1e-4, momentum=0.3, epsilon=1e-15,
+                           virtual_batch_size=exp_dict['bs']/8, 
+                           mask_type='entmax' # sparsemax
+                        )
         slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df)
     else:
         print('##########################')
 
+
+def get_cat_columns_and_dims(df_sampled):
+    nunique_clf2 = df_sampled.nunique()
+    types_clf2 = df_sampled.dtypes
+
+    categorical_columns = []
+    categorical_dims =  {}
+    for col in df_sampled.columns:
+        if types_clf2[col] == 'object' or nunique_clf2[col] < 200:
+            print(col, df_sampled[col].nunique())
+            l_enc = LabelEncoder()
+            df_sampled[col] = l_enc.fit_transform(df_sampled[col].values)
+            categorical_columns.append(col)
+            categorical_dims[col] = len(l_enc.classes_)
+
+    return categorical_columns, categorical_dims
 
 def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
     #trainable params

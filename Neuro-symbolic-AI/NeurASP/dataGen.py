@@ -77,17 +77,21 @@ class Intellizenz(Dataset):
         # # 1. Load the data 
         # data_df = pd.read_parquet(path)
 
-        features = column.features_v5 #143 features
+        # features = column.features_v5 #143 features
+        # features = column.features_v10 #21 features - with tarif_bez
+        # features = column.features_v8 #78 features including tarif_bez
+        features = column.features_v2 #140 features # doesn't include tarif_bez
 
-        data_df = data_df[features]
-        data_df = data_df.fillna(-1) # Fill the Empty NaN values in all the cells with -1
+        # data_df = data_df[features]
+        # data_df = data_df.fillna(-1) # Fill the Empty NaN values in all the cells with -1
 
 
-        X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso','tarif_bez'])] #140 features 
+        # X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso','tarif_bez'])] #140 features 
+        X = data_df[features]
         y = data_df['veranst_segment']
         tarif = data_df['tarif_bez']
 
-        self.X = torch.Tensor(X.values) #dimension: [n, 140]
+        self.X = torch.Tensor(X.values) #dimension: [n, 140] or [n, 78] or [n, 21]
         self.y = torch.Tensor(y.values) #dimension: [n]
 
         tarif_values = []
@@ -138,12 +142,17 @@ class Intellizenz_Test(Dataset):
 
 # Return n batches, where each batch contain batch_size values. Each value has a tensor of features 
 # and its target value event(veranst) segment(from 0 to 2)
-data_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v3.parquet.gzip'
+# data_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v3.parquet.gzip'
+
+# data_path = column.data_path_2016_2020_v5 #Leave-one-out-target-encoding features
+# df = pd.read_parquet(data_path)
+
+data_path = column.data_path_2016_2020_v3 #one hot encoded features for 30 frequent features
 df = pd.read_parquet(data_path)
-# df = df[:500]
 
 class_frequency = df.groupby('veranst_segment')['veranst_segment'].transform('count')
-df_sampled = df.sample(n=70000, weights=class_frequency, random_state=2)
+# df_sampled = df.sample(n=70000, weights=class_frequency, random_state=2)
+df_sampled = df.sample(n=300000, weights=class_frequency, random_state=2)
 
 le = LabelEncoder()
 df_sampled['tarif_bez'] = le.fit_transform(df_sampled['tarif_bez'])
@@ -178,12 +187,15 @@ test_loader = torch.utils.data.DataLoader(Intellizenz(data_df=df_test), batch_si
 # tarif = 'U-ST I (MUSIKER) NL' in trainloader(from 1.3M data) - 18094 - less frequency than actual cause of weighted_sampler
 # tarif = 'U-ST I (MUSIKER) NL' in testloader - 5662
 
+
 dataList = []
 queryList = []
+
 #train_loader has n batches, each batch contains 64 values 
 # Each data batch shape is [64,140]
 # Each label batch shape is [64]
 for data_batch, label_batch, tarif_batch in train_loader: 
+
     for i, data in enumerate(data_batch):
         # if i==0:
             x = data_batch[i]
@@ -194,14 +206,28 @@ for data_batch, label_batch, tarif_batch in train_loader:
             data = {'t1':x}
 
             # query = ":- not event(t1,{}). ".format(int(y))
-            # query = ":- not event(t1,{}). \ntarif({}).".format(int(y),tarif)
-            query = ":- not event({},{}). \ntarif({}).".format(tarif,int(y),tarif)
+            query = ":- not event(t1,{}). \ntarif({}).".format(int(y),tarif)
+            # query = ":- not event({},{}). \ntarif({}).".format(tarif,int(y),tarif)
 
             dataList.append(data)
             queryList.append(query)
 
-            
 
+# for data_batch, label_batch, tarif_batch in train_loader: 
+#     data_dict_batch = []
+#     query_dict_batch = []
+
+#     int_label_batch = []
+#     for i, _ in enumerate(label_batch):
+#         y = label_batch[i]
+#         int_label_batch.append(int(y))
+
+#     data = {'t1':data_batch}
+#     query = ":- not event(t1,{}). \ntarif({}).".format(int_label_batch,tarif_batch)
+
+#     dataList.append(data)
+#     queryList.append(query)
+        
 
 # program ='''
 # row(t1).

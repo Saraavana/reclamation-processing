@@ -13,7 +13,10 @@ class Intellizenz(Dataset):
         # 1. Load the data 
         data_df = df
         # features = column.features_v5 #143 features
-        features = column.features_v7 #77 features
+        # features = column.features_v7 #77 features - without tarif
+        # features = column.features_v8 #78 features - with tarif
+        # features = column.features_v9 #9 features - with tarif
+        features = column.features_v10 #21 features - with tarif
 
         data_df = data_df[features]
 
@@ -58,7 +61,10 @@ class Intellizenz_Data(Dataset):
         # 1. Load the data 
         data_df = df
         # features = column.features_v5 #143 features
-        features = column.features_v7  #77 features
+        # features = column.features_v7  #77 features without tarif
+        # features = column.features_v8 #78 features - with tarif
+        # features = column.features_v9 #9 features - with tarif
+        features = column.features_v10 #21 features - with tarif
 
         data_df = data_df[features]
 

@@ -3,19 +3,33 @@ import torch.nn as nn
 import numpy as np
 
 class Net(nn.Module):
+    # def __init__(self, n_features, output_dim):
+    #     super(Net, self).__init__()
+    #     self.input_features = n_features
+    #     self.classifier =  nn.Sequential(
+    #         nn.Linear(n_features, 2048),
+    #         nn.ReLU(),
+    #         nn.Linear(2048, 1024),
+    #         nn.ReLU(),
+    #         nn.Linear(1024, 84),
+    #         nn.ReLU(),
+    #         nn.Linear(84, output_dim),
+    #         nn.Softmax(1)
+    #     )
+
     def __init__(self, n_features, output_dim):
         super(Net, self).__init__()
         self.input_features = n_features
+        hidden_sizes = [16, 64] # 2 hidden layers
+
         self.classifier =  nn.Sequential(
-            nn.Linear(n_features, 2048),
+            nn.Linear(n_features, hidden_sizes[0]),
             nn.ReLU(),
-            nn.Linear(2048, 1024),
+            nn.Linear(hidden_sizes[0], hidden_sizes[1]),
             nn.ReLU(),
-            nn.Linear(1024, 84),
-            nn.ReLU(),
-            nn.Linear(84, output_dim),
-            nn.Softmax(1)
-        )
+            nn.Linear(hidden_sizes[1], output_dim),
+            nn.Softmax(dim=1)
+        )    
 
     def forward(self, x):
         x = x.view(-1, self.input_features)
