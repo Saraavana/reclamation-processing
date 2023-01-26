@@ -110,11 +110,9 @@ def get_cat_columns_and_dims():
 
     return categorical_columns, categorical_dims
 
-
 ########
 # Define nnMapping and optimizers, initialze NeurASP object
 ########
-
 # categorical_columns, categorical_dims = get_cat_columns_and_dims()
 # feature_columns = column.features_v10 #21 features - with tarif
 # cat_idxs = [ i for i, f in enumerate(feature_columns) if f in categorical_columns]
@@ -146,8 +144,33 @@ print(optimizers)
 ########
 # Start training and testing
 ########
+
+#save the neural network  such that we can use it later
+# saveModelPath = './Neuro-symbolic-AI/NeurASP/data/'+'1_epoch'+'/slash_models.pt'
+# Path("./Neuro-symbolic-AI/SLASH/data/"+'1_epoch'+"/").mkdir(parents=True, exist_ok=True)
+
+
 print('Start training for 1 epoch...')
-NeurASPobj.learn(dataList=dataList, obsList=queryList, epoch=20, smPickle=None, bar=True)
+# NeurASPobj.learn(dataList=dataList, obsList=queryList, epoch=50, smPickle=None, bar=True)
+
+
+##Resume training
+########
+# To resume the training, load the model
+########
+print("resuming experiment")
+saveModelPath = './Neuro-symbolic-AI/NeurASP/data/'+'1_epoch'+'/2HL_MLP_lr_0.001_d300k_140feat_ep20_w_tarif.pt'
+saved_model = torch.load(saveModelPath)
+print(saveModelPath)
+#load pytorch models
+m.load_state_dict(saved_model['intellizenz_net'], strict=False)
+
+
+#optimizers and schedulers
+optimizers['nasp_intellizenz'].load_state_dict(saved_model['resume']['optimizer_intellizenz'])
+start_e = saved_model['resume']['epoch']
+
+NeurASPobj.learn(dataList=dataList, obsList=queryList, epoch=50, smPickle=None, bar=True, start_e=start_e, saveModelPath=saveModelPath)
 
 # device = torch.device('cpu')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -162,5 +185,4 @@ accuracyTrain, singleAccuracyTrain, _, _, _ = testNN(model=m, testLoader=train_l
 
 print(f'{accuracyTrain:0.2f}\t{accuracy:0.2f}')
 print('--- total time from beginning: %s seconds ---' % int(time.time() - start_time))
-
 

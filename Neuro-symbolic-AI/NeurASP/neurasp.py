@@ -230,7 +230,8 @@ class NeurASP(object):
         return dmvpp.find_one_most_probable_SM_under_obs_noWC(obs=obs)
 
 
-    def learn(self, dataList, obsList, epoch, alpha=0, lossFunc='cross', method='exact', lr=0.01, opt=False, storeSM=False, smPickle=None, accEpoch=0, batchSize=1, bar=False):
+    # def learn(self, dataList, obsList, epoch, alpha=0, lossFunc='cross', method='exact', lr=0.01, opt=False, storeSM=False, smPickle=None, accEpoch=0, batchSize=1, bar=False):
+    def learn(self, dataList, obsList, epoch, alpha=0, lossFunc='cross', method='exact', lr=0.01, opt=False, storeSM=False, smPickle=None, start_e=0, saveModelPath='', accEpoch=0, batchSize=1, bar=False):
         """
         @param dataList: a list of dictionaries, where each dictionary maps terms to either a tensor/np-array or a tuple (tensor/np-array, {'m': labelTensor})
         @param obsList: a list of strings, where each string is a set of constraints denoting an observation
@@ -266,24 +267,23 @@ class NeurASP(object):
             dmvpp = MVPP(self.mvpp['program'])
 
         # #Initialize weights and biases
-        wandb.init(project="Intellizenz", entity="elsaravana")
+        # wandb.init(project="Intellizenz", entity="elsaravana")
+        wandb.init(id="ls6fe5ex", project="Intellizenz", resume=True, entity="elsaravana")
         wandb.config = {
                 "learning_rate": 0.001,
-                "epochs": 1
+                "epochs": epoch
         }
 
         # we train all nerual network models
         for m in self.nnMapping:
             self.nnMapping[m].train()
 
-        #save the neural network  such that we can use it later
-        saveModelPath = './Neuro-symbolic-AI/NeurASP/data/'+'1_epoch'+'/slash_models.pt'
-        Path("./Neuro-symbolic-AI/SLASH/data/"+'1_epoch'+"/").mkdir(parents=True, exist_ok=True)
         start_time = time.time()
         
 
         # we train for 'epoch' times of epochs
-        for epochIdx in range(epoch):
+        # for epochIdx in range(epoch):
+        for epochIdx in range(start_e, epoch):
             # for each training instance in the training data
             iterator = enumerate(tqdm(dataList)) if bar else enumerate(dataList)
             for dataIdx, data in iterator:
@@ -453,7 +453,7 @@ class NeurASP(object):
             wandb.log({"roc" : wandb.plot.roc_curve(y_true=y_target, y_probas=probas,
                             labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
 
-            print(f'{accuracyTrain:0.2f}\t{accuracy:0.2f}')
+            print(f'{accuracyTrain:0.2f}\t{accuracy:0.2f}') 
 
 
     def testNN(self, nn, testLoader):

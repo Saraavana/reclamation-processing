@@ -2,7 +2,6 @@ import torch
 from torch.utils.data import Dataset
 import pandas as pd
 from sklearn.model_selection import train_test_split
-import numpy as np
 
 import os, sys; 
 parent_directory = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/SLASH' 
@@ -14,9 +13,6 @@ if sys.path.__contains__(parent_directory)==False:
     sys.path.append(parent_directory)
 
 import column
-import utils
-
-from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -72,19 +68,10 @@ def get_class_distribution(obj):
 class Intellizenz(Dataset):
     # def __init__(self, path):
     def __init__(self, data_df):
-        # self.path = path
-
-        # # 1. Load the data 
-        # data_df = pd.read_parquet(path)
-
         # features = column.features_v5 #143 features
         # features = column.features_v10 #21 features - with tarif_bez
         # features = column.features_v8 #78 features including tarif_bez
         features = column.features_v2 #140 features # doesn't include tarif_bez
-
-        # data_df = data_df[features]
-        # data_df = data_df.fillna(-1) # Fill the Empty NaN values in all the cells with -1
-
 
         # X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso','tarif_bez'])] #140 features 
         X = data_df[features]
