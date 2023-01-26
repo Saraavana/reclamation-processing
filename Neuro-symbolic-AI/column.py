@@ -2,9 +2,9 @@ data_path_2016_2020_v3 = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-trai
 train_data_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_training_features_2016_2020_v2.parquet.gzip'
 test_data_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_testing_features_2016_2020_v2.parquet.gzip'
 
-# label encoded tarif-bez
+# label encoded tarif-bez - with leave-one-hot- target encoding features 
 data_path_2016_2020_v4 = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v4.parquet.gzip'
-# label unencoded tarif-bez
+# label unencoded tarif-bez - with leave-one-hot- target encoding features
 data_path_2016_2020_v5 = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v5.parquet.gzip'
 
 
