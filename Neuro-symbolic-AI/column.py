@@ -7,7 +7,7 @@ data_path_2016_2020_v4 = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-trai
 # label unencoded tarif-bez - with leave-one-hot- target encoding features
 data_path_2016_2020_v5 = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v5.parquet.gzip'
 
-
+# 30 venue, 30 band, 16 state, 4 seasonality, 2 target features
 features_v1 = [
             'place_kirche', 'place_hotel', 'place_cafe',
             'place_theater', 'place_club', 'place_halle',
@@ -20,16 +20,7 @@ features_v1 = [
             'place_zelt', 'place_jazz', 'place_forum',
             'place_gymnasium', 'place_schule', 'place_sporthalle', 
 
-            'band_kurorchester bad wil', 'band_musikverein harmonie', 'band_kasalla',
-            'band_cat ballou', 'band_roncalli  royal orch', 'band_jugendblasorchester',
-            'band_kurorchester bad pyr', 'band_hoehner', 'band_paveier',
-            'band_domstuermer', 'band_kluengelkoepp', 'band_alleinunterhalter',
-            'band_the gregorian voices', 'band_brings', 'band_musica hungarica',
-            'band_concerto', 'band_bad salzuflen orches', 'band_musikverein stadtkap',
-            'band_salonorchester hunga', 'band_miljoe', 'band_raeuber',
-            'band_kabarett leipziger f', 'band_marita koellner', 'band_salon-orchester hung',
-            'band_blaeck foeoess', 'band_schuelerinnen und sc', 'band_romain vicente',
-            'band_staatliche kurkapell', 'band_musikzug der freiwil', 'band_funky marys',
+            #30 bands
 
             'state_bavaria','state_rhineland-palatinate',
             'state_baden-wuerttemberg',	'state_north rhine-westphalia',	
@@ -46,6 +37,7 @@ features_v1 = [
         ]
 
 # 140 Feautes used - 30 common features('VG_RAUM_KEYWORDS', 'BAND', 'PROMOTER', 'tariffs') 'vg_state', 'VG_DATUM_VON'
+# 30 venue, 30 tarif, 30 band, 30 promoter , 16 state, 4 seasonality
 features_v2 = ['place_kirche', 'place_hotel', 'place_cafe',
  'place_theater', 'place_club', 'place_halle',
  'place_gaststaette', 'place_festhalle', 'place_kulturzentrum',
@@ -68,17 +60,7 @@ features_v2 = ['place_kirche', 'place_hotel', 'place_cafe',
 'tarif_u-k ii. (musiker) bis 40 min', 'tarif_p-k i. (e-musik)', 'tarif_u-st i. (musiker)', 
 'tarif_u-k ii (musiker) mindestverguetung', 'tarif_u-k ii. (musiker) bis 45 min', 'tarif_u-v vi. b mindestverguetung', 
 
-
-'band_kurorchester bad wil', 'band_musikverein harmonie', 'band_kasalla',
- 'band_cat ballou', 'band_roncalli  royal orch', 'band_jugendblasorchester',
- 'band_kurorchester bad pyr', 'band_hoehner', 'band_paveier',
- 'band_domstuermer', 'band_kluengelkoepp', 'band_alleinunterhalter',
- 'band_the gregorian voices', 'band_brings', 'band_musica hungarica',
- 'band_concerto', 'band_bad salzuflen orches', 'band_musikverein stadtkap',
- 'band_salonorchester hunga', 'band_miljoe', 'band_raeuber',
- 'band_kabarett leipziger f', 'band_marita koellner', 'band_salon-orchester hung',
- 'band_blaeck foeoess', 'band_schuelerinnen und sc', 'band_romain vicente',
- 'band_staatliche kurkapell', 'band_musikzug der freiwil', 'band_funky marys',
+# 30 bands
 
 
 'state_bavaria','state_rhineland-palatinate',
@@ -92,39 +74,12 @@ features_v2 = ['place_kirche', 'place_hotel', 'place_cafe',
 
 'vg_datum_year','vg_datum_month','vg_datum_day_of_week','vg_datum_season',
 
-'promoter_live nation gmbh',
-'promoter_fkp scorpio konzertproduktionen gmbh', 
-'promoter_trinity music gmbh', 
-'promoter_karsten jahnke konzertdirektion gmbh', 
-'promoter_prime entertainment gmbh', 
-'promoter_semmel concerts entertainment gmbh', 
-'promoter_chorverband nrw e.v', 
-'promoter_schwaebischer chorverband e.v', 
-'promoter_backstage concerts gmbh', 
-'promoter_kulturzentrum schlachthof wiesbaden e.v', 
-'promoter_irish pubs gaststaetten gmbh', 
-'promoter_fraenkischer saengerbund e.v', 
-'promoter_frankfurter kulturzentrum e.v', 
-'promoter_circus roncalli gmbh', 
-'promoter_paul daly und paul fleming gbr', 
-'promoter_foerderkreis jazz und malerei muenchen e.v', 
-'promoter_hessischer saengerbund e.v', 
-'promoter_gastro event gmbh', 
-'promoter_berninger musik & gastronomie gmbh', 
-'promoter_feierwerk e.v',
-'promoter_bayerisches staatsbad bad steben gmbh', 
-'promoter_europa-park gmbh & co mack kg', 
-'promoter_badischer chorverband 1862 e.v', 
-'promoter_bayerisches wirtshaus berlin gmbh', 
-'promoter_tollwood gmbh', 
-'promoter_graeflicher park gmbh & co. kg',
-'promoter_konzertbuero schoneberg gmbh',  	
-'promoter_staatsbad salzuflen gmbh', 
-'promoter_kurverwaltung bad mergentheim gmbh', 
-'promoter_gisbert hiller'
+# 30 promoters
+
 ]
 
 # 142 Feautes used - 'VG_RAUM_KEYWORDS', 'VG_DATUM_VON', 'vg_state', 'BAND', 'PROMOTER', TARIF_BEZ
+# 30 venue, 30 tarif, 30 band, 30 promoter , 16 state, 4 seasonality, 2 target featuers
 features_v3 = ['place_kirche', 'place_hotel', 'place_cafe',
  'place_theater', 'place_club', 'place_halle',
  'place_gaststaette', 'place_festhalle', 'place_kulturzentrum',
@@ -147,17 +102,7 @@ features_v3 = ['place_kirche', 'place_hotel', 'place_cafe',
 'tarif_u-k ii. (musiker) bis 40 min', 'tarif_p-k i. (e-musik)', 'tarif_u-st i. (musiker)', 
 'tarif_u-k ii (musiker) mindestverguetung', 'tarif_u-k ii. (musiker) bis 45 min', 'tarif_u-v vi. b mindestverguetung', 
 
-
-'band_kurorchester bad wil', 'band_musikverein harmonie', 'band_kasalla',
- 'band_cat ballou', 'band_roncalli  royal orch', 'band_jugendblasorchester',
- 'band_kurorchester bad pyr', 'band_hoehner', 'band_paveier',
- 'band_domstuermer', 'band_kluengelkoepp', 'band_alleinunterhalter',
- 'band_the gregorian voices', 'band_brings', 'band_musica hungarica',
- 'band_concerto', 'band_bad salzuflen orches', 'band_musikverein stadtkap',
- 'band_salonorchester hunga', 'band_miljoe', 'band_raeuber',
- 'band_kabarett leipziger f', 'band_marita koellner', 'band_salon-orchester hung',
- 'band_blaeck foeoess', 'band_schuelerinnen und sc', 'band_romain vicente',
- 'band_staatliche kurkapell', 'band_musikzug der freiwil', 'band_funky marys',
+#30 band
 
 
 'state_bavaria','state_rhineland-palatinate',
@@ -171,42 +116,15 @@ features_v3 = ['place_kirche', 'place_hotel', 'place_cafe',
 
 'vg_datum_year','vg_datum_month','vg_datum_day_of_week','vg_datum_season',
 
-'promoter_live nation gmbh',
-'promoter_fkp scorpio konzertproduktionen gmbh', 
-'promoter_trinity music gmbh', 
-'promoter_karsten jahnke konzertdirektion gmbh', 
-'promoter_prime entertainment gmbh', 
-'promoter_semmel concerts entertainment gmbh', 
-'promoter_chorverband nrw e.v', 
-'promoter_schwaebischer chorverband e.v', 
-'promoter_backstage concerts gmbh', 
-'promoter_kulturzentrum schlachthof wiesbaden e.v', 
-'promoter_irish pubs gaststaetten gmbh', 
-'promoter_fraenkischer saengerbund e.v', 
-'promoter_frankfurter kulturzentrum e.v', 
-'promoter_circus roncalli gmbh', 
-'promoter_paul daly und paul fleming gbr', 
-'promoter_foerderkreis jazz und malerei muenchen e.v', 
-'promoter_hessischer saengerbund e.v', 
-'promoter_gastro event gmbh', 
-'promoter_berninger musik & gastronomie gmbh', 
-'promoter_feierwerk e.v',
-'promoter_bayerisches staatsbad bad steben gmbh', 
-'promoter_europa-park gmbh & co mack kg', 
-'promoter_badischer chorverband 1862 e.v', 
-'promoter_bayerisches wirtshaus berlin gmbh', 
-'promoter_tollwood gmbh', 
-'promoter_graeflicher park gmbh & co. kg',
-'promoter_konzertbuero schoneberg gmbh',  	
-'promoter_staatsbad salzuflen gmbh', 
-'promoter_kurverwaltung bad mergentheim gmbh', 
-'promoter_gisbert hiller',
+#30 promoters
 
 'veranst_segment','vg_inkasso'
 ]
 
 # 238 Feautes used - 'VG_RAUM_KEYWORDS', 'VG_DATUM_VON', 'vg_state', 'BAND', 'PROMOTER', TARIF_BEZ, vg_state_percentiles,
 # promoter_percentiles, band_percentiles, tarif_percentiles
+# 30 venue, 30 tarif, 30 band, 30 promoter , 16 state, 4 seasonality, each 24(band, state, promoter, tarif) percentiles, 2 target feature
+
 features_v4 = ['place_kirche', 'place_hotel', 'place_cafe',
  'place_theater', 'place_club', 'place_halle',
  'place_gaststaette', 'place_festhalle', 'place_kulturzentrum',
@@ -229,17 +147,7 @@ features_v4 = ['place_kirche', 'place_hotel', 'place_cafe',
 'tarif_u-k ii. (musiker) bis 40 min', 'tarif_p-k i. (e-musik)', 'tarif_u-st i. (musiker)', 
 'tarif_u-k ii (musiker) mindestverguetung', 'tarif_u-k ii. (musiker) bis 45 min', 'tarif_u-v vi. b mindestverguetung', 
 
-
-'band_kurorchester bad wil', 'band_musikverein harmonie', 'band_kasalla',
- 'band_cat ballou', 'band_roncalli  royal orch', 'band_jugendblasorchester',
- 'band_kurorchester bad pyr', 'band_hoehner', 'band_paveier',
- 'band_domstuermer', 'band_kluengelkoepp', 'band_alleinunterhalter',
- 'band_the gregorian voices', 'band_brings', 'band_musica hungarica',
- 'band_concerto', 'band_bad salzuflen orches', 'band_musikverein stadtkap',
- 'band_salonorchester hunga', 'band_miljoe', 'band_raeuber',
- 'band_kabarett leipziger f', 'band_marita koellner', 'band_salon-orchester hung',
- 'band_blaeck foeoess', 'band_schuelerinnen und sc', 'band_romain vicente',
- 'band_staatliche kurkapell', 'band_musikzug der freiwil', 'band_funky marys',
+# 30 bands
 
 
 'state_bavaria','state_rhineland-palatinate',
@@ -253,36 +161,7 @@ features_v4 = ['place_kirche', 'place_hotel', 'place_cafe',
 
 'vg_datum_year','vg_datum_month','vg_datum_day_of_week','vg_datum_season',
 
-'promoter_live nation gmbh',
-'promoter_fkp scorpio konzertproduktionen gmbh', 
-'promoter_trinity music gmbh', 
-'promoter_karsten jahnke konzertdirektion gmbh', 
-'promoter_prime entertainment gmbh', 
-'promoter_semmel concerts entertainment gmbh', 
-'promoter_chorverband nrw e.v', 
-'promoter_schwaebischer chorverband e.v', 
-'promoter_backstage concerts gmbh', 
-'promoter_kulturzentrum schlachthof wiesbaden e.v', 
-'promoter_irish pubs gaststaetten gmbh', 
-'promoter_fraenkischer saengerbund e.v', 
-'promoter_frankfurter kulturzentrum e.v', 
-'promoter_circus roncalli gmbh', 
-'promoter_paul daly und paul fleming gbr', 
-'promoter_foerderkreis jazz und malerei muenchen e.v', 
-'promoter_hessischer saengerbund e.v', 
-'promoter_gastro event gmbh', 
-'promoter_berninger musik & gastronomie gmbh', 
-'promoter_feierwerk e.v',
-'promoter_bayerisches staatsbad bad steben gmbh', 
-'promoter_europa-park gmbh & co mack kg', 
-'promoter_badischer chorverband 1862 e.v', 
-'promoter_bayerisches wirtshaus berlin gmbh', 
-'promoter_tollwood gmbh', 
-'promoter_graeflicher park gmbh & co. kg',
-'promoter_konzertbuero schoneberg gmbh',  	
-'promoter_staatsbad salzuflen gmbh', 
-'promoter_kurverwaltung bad mergentheim gmbh', 
-'promoter_gisbert hiller',
+# 30 promoters
 
 'vg_state_count', 'vg_state_mean', 'vg_state_std', 'vg_state_min', 
 'vg_state_5%', 'vg_state_10%', 'vg_state_15%', 'vg_state_20%', 
@@ -316,6 +195,7 @@ features_v4 = ['place_kirche', 'place_hotel', 'place_cafe',
 ]
 
 # 143 Feautes used - 'VG_RAUM_KEYWORDS', 'VG_DATUM_VON', 'vg_state', 'BAND', 'PROMOTER', TARIF_BEZ
+# 30 venue, 30 tarif, 30 band, 30 promoter , 16 state, 4 seasonality, 2 target features, tarif_bez
 features_v5 = ['place_kirche', 'place_hotel', 'place_cafe',
  'place_theater', 'place_club', 'place_halle',
  'place_gaststaette', 'place_festhalle', 'place_kulturzentrum',
@@ -338,17 +218,7 @@ features_v5 = ['place_kirche', 'place_hotel', 'place_cafe',
 'tarif_u-k ii. (musiker) bis 40 min', 'tarif_p-k i. (e-musik)', 'tarif_u-st i. (musiker)', 
 'tarif_u-k ii (musiker) mindestverguetung', 'tarif_u-k ii. (musiker) bis 45 min', 'tarif_u-v vi. b mindestverguetung', 
 
-
-'band_kurorchester bad wil', 'band_musikverein harmonie', 'band_kasalla',
- 'band_cat ballou', 'band_roncalli  royal orch', 'band_jugendblasorchester',
- 'band_kurorchester bad pyr', 'band_hoehner', 'band_paveier',
- 'band_domstuermer', 'band_kluengelkoepp', 'band_alleinunterhalter',
- 'band_the gregorian voices', 'band_brings', 'band_musica hungarica',
- 'band_concerto', 'band_bad salzuflen orches', 'band_musikverein stadtkap',
- 'band_salonorchester hunga', 'band_miljoe', 'band_raeuber',
- 'band_kabarett leipziger f', 'band_marita koellner', 'band_salon-orchester hung',
- 'band_blaeck foeoess', 'band_schuelerinnen und sc', 'band_romain vicente',
- 'band_staatliche kurkapell', 'band_musikzug der freiwil', 'band_funky marys',
+# 30 bands
 
 
 'state_bavaria','state_rhineland-palatinate',
@@ -362,36 +232,7 @@ features_v5 = ['place_kirche', 'place_hotel', 'place_cafe',
 
 'vg_datum_year','vg_datum_month','vg_datum_day_of_week','vg_datum_season',
 
-'promoter_live nation gmbh',
-'promoter_fkp scorpio konzertproduktionen gmbh', 
-'promoter_trinity music gmbh', 
-'promoter_karsten jahnke konzertdirektion gmbh', 
-'promoter_prime entertainment gmbh', 
-'promoter_semmel concerts entertainment gmbh', 
-'promoter_chorverband nrw e.v', 
-'promoter_schwaebischer chorverband e.v', 
-'promoter_backstage concerts gmbh', 
-'promoter_kulturzentrum schlachthof wiesbaden e.v', 
-'promoter_irish pubs gaststaetten gmbh', 
-'promoter_fraenkischer saengerbund e.v', 
-'promoter_frankfurter kulturzentrum e.v', 
-'promoter_circus roncalli gmbh', 
-'promoter_paul daly und paul fleming gbr', 
-'promoter_foerderkreis jazz und malerei muenchen e.v', 
-'promoter_hessischer saengerbund e.v', 
-'promoter_gastro event gmbh', 
-'promoter_berninger musik & gastronomie gmbh', 
-'promoter_feierwerk e.v',
-'promoter_bayerisches staatsbad bad steben gmbh', 
-'promoter_europa-park gmbh & co mack kg', 
-'promoter_badischer chorverband 1862 e.v', 
-'promoter_bayerisches wirtshaus berlin gmbh', 
-'promoter_tollwood gmbh', 
-'promoter_graeflicher park gmbh & co. kg',
-'promoter_konzertbuero schoneberg gmbh',  	
-'promoter_staatsbad salzuflen gmbh', 
-'promoter_kurverwaltung bad mergentheim gmbh', 
-'promoter_gisbert hiller',
+# 30 promoters
 
 'veranst_segment','vg_inkasso', 'tarif_bez'
 ]
