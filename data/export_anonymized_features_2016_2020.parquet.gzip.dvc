@@ -1,4 +1,4 @@
 outs:
-- md5: 2861a9fb6a0fffef0ce79e0bd085e7aa
-  size: 52258542
+- md5: f7d6f89a5fef5fdb939f4d828cc720db
+  size: 39226972
   path: export_anonymized_features_2016_2020.parquet.gzip
