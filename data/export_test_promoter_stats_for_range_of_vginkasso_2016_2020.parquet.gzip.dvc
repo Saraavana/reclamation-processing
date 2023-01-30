@@ -1,4 +1,0 @@
-outs:
-- md5: 639bf224eda7ba5d4cb29868e0ef7f00
-  size: 20195117
-  path: export_test_promoter_stats_for_range_of_vginkasso_2016_2020.parquet.gzip

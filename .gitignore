@@ -16,4 +16,9 @@ Neuro-symbolic-AI/NSTSC/Codes/__pycache__
 Neuro-symbolic-AI/NeurASP/__pycache__
 Neuro-symbolic-AI/SLASH/__pycache__
 
+Neuro-symbolic-AI/SLASH/TabNet/__pycache__
+
 Neuro-symbolic-AI/**/*/*.pyc
+Neuro-symbolic-AI/**/**/*.pyc
+Neuro-symbolic-AI/**/**/**/*.pyc
+Neuro-symbolic-AI/*.pyc

@@ -1,4 +1,0 @@
-outs:
-- md5: 244d7f765322a7735f885f93a96ad09e
-  size: 216970638
-  path: export_training_features_2016_2020_v1.parquet.gzip

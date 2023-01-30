@@ -1,4 +1,0 @@
-outs:
-- md5: 598e93a76dacec3bca2cf632aec7051e
-  size: 86343889
-  path: export_promoter_descr_stats_2016_2020_v3.parquet.gzip

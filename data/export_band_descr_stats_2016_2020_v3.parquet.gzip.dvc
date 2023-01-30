@@ -1,4 +1,0 @@
-outs:
-- md5: 53863050405fb966e368f1cceb96cd44
-  size: 97078126
-  path: export_band_descr_stats_2016_2020_v3.parquet.gzip
