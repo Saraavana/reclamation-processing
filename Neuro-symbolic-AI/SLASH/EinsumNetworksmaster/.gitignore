@@ -9,9 +9,3 @@ demo_results/
 samples/
 auxiliary/
 __pycache__
-Neuro-symbolic-AI/__pycache__
-Neuro-symbolic-AI/LNN/Codes/utils/__pycache__
-Neuro-symbolic-AI/LTN/__pycache__
-Neuro-symbolic-AI/NSTSC/Codes/__pycache__
-Neuro-symbolic-AI/NeurASP/__pycache__
-Neuro-symbolic-AI/SLASH/__pycache__
