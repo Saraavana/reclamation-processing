@@ -17,10 +17,6 @@ if sys.path.__contains__(column_path)==False:
     sys.path.append(column_path)
 
 import column
-# from PWN.model.wein import WEin
-# from PWN.model.wein.wein_config import WEinConfig
-
-# from einsum_wrapper import EiNet
 from network_nn import *
 
 from sklearn.metrics import confusion_matrix, classification_report
