@@ -8,11 +8,12 @@ from sklearn.preprocessing import LabelEncoder
 import pandas as pd
 
 import os, sys; 
-tabnet_path = os.path.dirname(os.path.realpath('C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/SLASH/TabNet/pytorch_tabnet'))
-if sys.path.__contains__(tabnet_path)==False:
-    sys.path.append(tabnet_path)
 
-column_path = os.path.dirname(os.path.realpath('C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/column.py'))
+# tabnet_path = os.path.dirname(os.path.realpath('C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/SLASH/TabNet/pytorch_tabnet'))
+# if sys.path.__contains__(tabnet_path)==False:
+#     sys.path.append(tabnet_path)
+
+column_path = os.path.dirname(os.path.realpath('/Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/Neuro-symbolic-AI/column.py'))
 if sys.path.__contains__(column_path)==False:
     sys.path.append(column_path)
 
@@ -37,15 +38,55 @@ start_time = time.time()
 
 # '''
 
-program ='''
+# program ='''
+# row(t1).
+
+# nn(vgsegment(1,T),[0,1,2]) :- row(T).
+# event(T,C) :- vgsegment(0,T,C).
+
+# :- event(T,C), tarif(TA), TA=56, C=0.
+# :- event(T,C), tarif(TA), TA=56, C=1. 
+
+# '''
+
+# program ='''
+# row(t1).
+
+# nn(vgsegment(1,T),[0,1,2]) :- row(T). 
+
+# % we assign one probability for each class
+# event(T,C) :- vgsegment(0,T,C).
+
+# % It's a mistake if the tarif 56 belongs to class 0 or class 1 
+# :- event(T,C), tarif(TA), TA=56, C=0 .
+# :- event(T,C), tarif(TA), TA=56, C=1 . 
+
+# '''
+
+program = '''
 row(t1).
 
-nn(vgsegment(1,T),[0,1,2]) :- row(T).
-event(T,C) :- vgsegment(0,T,C).
+nn(vgsegment(1,T),[0,1,2]) :- row(T). 
+event(T,C) :- vgsegment(0,T,C), tarif(TA).
 
-:- event(T,C), tarif(TA), TA=56, C=0.
-:- event(T,C), tarif(TA), TA=56, C=1. 
 
+% It's a mistake if the tarif 26,56 belongs to class 0 or class 1
+:- event(T,C), tarif(TA), TA=(26;56), C=0 .
+:- event(T,C), tarif(TA), TA=(26;56), C=1 .
+
+% It's a mistake if the following six tarifs belongs to class 1 or class 2.
+:- event(T,C), tarif(TA), TA=(1;77;24;69;23;76), C=1 .
+:- event(T,C), tarif(TA), TA=(1;77;24;69;23;76), C=2 .
+   
+
+% It's a mistake if the following two tarifs belongs to class 0.
+:- event(T,C), tarif(TA), TA=(55;17), C=0 .
+
+% It's a mistake if the following tarif belongs to class 1.
+:- event(T,C), tarif(TA), TA=(68), C=1 .
+
+% It's a mistake if the following six tarifs belongs to class 2.
+:- event(T,C), tarif(TA), TA=(73;9;71;4;13;14), C=2 .
 '''
 
 # program ='''
@@ -118,9 +159,9 @@ def get_cat_columns_and_dims():
 # cat_idxs = [ i for i, f in enumerate(feature_columns) if f in categorical_columns]
 # cat_dims = [ categorical_dims[f] for i, f in enumerate(feature_columns) if f in categorical_columns]
 
-m = Net(n_features=140,output_dim=3)
+# m = Net(n_features=140,output_dim=3)
 # m = Net(n_features=21,output_dim=3)
-# m = Net(n_features=78,output_dim=3)
+m = Net(n_features=78,output_dim=3)
 # m = TabNetClass(input_dim=21, output_dim= 3,
 #                 n_d=64, n_a=64, n_steps=5,
 #                 gamma=1.5, n_independent=2, n_shared=2,
@@ -138,7 +179,7 @@ optimizers = {'nasp_intellizenz': torch.optim.Adam([
                                             {'params':m.parameters()}],
                                             lr=0.001)}
 NeurASPobj = NeurASP(program, nnMapping, optimizers, gpu=True)
-print(optimizers)
+# print(optimizers)
 
 
 ########
@@ -147,30 +188,33 @@ print(optimizers)
 
 #save the neural network  such that we can use it later
 # saveModelPath = './Neuro-symbolic-AI/NeurASP/data/'+'1_epoch'+'/slash_models.pt'
-# Path("./Neuro-symbolic-AI/SLASH/data/"+'1_epoch'+"/").mkdir(parents=True, exist_ok=True)
+base_path = './Neuro-symbolic-AI/NeurASP/data/'
+saveModelPath = base_path+'1_epoch'+'/neurasp_models.pt'
+
+Path(base_path+'1_epoch'+"/").mkdir(parents=True, exist_ok=True)
 
 
 print('Start training for 1 epoch...')
-# NeurASPobj.learn(dataList=dataList, obsList=queryList, epoch=50, smPickle=None, bar=True)
+NeurASPobj.learn(dataList=dataList, obsList=queryList, epoch=50, smPickle=None, bar=True, saveModelPath=saveModelPath)
 
 
-##Resume training
-########
-# To resume the training, load the model
-########
-print("resuming experiment")
-saveModelPath = './Neuro-symbolic-AI/NeurASP/data/'+'1_epoch'+'/2HL_MLP_lr_0.001_d300k_140feat_ep20_w_tarif.pt'
-saved_model = torch.load(saveModelPath)
-print(saveModelPath)
-#load pytorch models
-m.load_state_dict(saved_model['intellizenz_net'], strict=False)
+# ##Resume training
+# ########
+# # To resume the training, load the model
+# ########
+# print("resuming experiment")
+# saveModelPath = './Neuro-symbolic-AI/NeurASP/data/'+'1_epoch'+'/2HL_MLP_lr_0.001_d300k_140feat_ep20_w_tarif.pt'
+# saved_model = torch.load(saveModelPath)
+# print(saveModelPath)
+# #load pytorch models
+# m.load_state_dict(saved_model['intellizenz_net'], strict=False)
 
 
-#optimizers and schedulers
-optimizers['nasp_intellizenz'].load_state_dict(saved_model['resume']['optimizer_intellizenz'])
-start_e = saved_model['resume']['epoch']
+# #optimizers and schedulers
+# optimizers['nasp_intellizenz'].load_state_dict(saved_model['resume']['optimizer_intellizenz'])
+# start_e = saved_model['resume']['epoch']
 
-NeurASPobj.learn(dataList=dataList, obsList=queryList, epoch=50, smPickle=None, bar=True, start_e=start_e, saveModelPath=saveModelPath)
+# NeurASPobj.learn(dataList=dataList, obsList=queryList, epoch=50, smPickle=None, bar=True, start_e=start_e, saveModelPath=saveModelPath)
 
 # device = torch.device('cpu')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from mvpp import MVPP
 
-from dataGen import test_loader, train_loader
+from dataGen import test_loader, train_loader, test_dataList, test_queryList
 from network import testNN
 import wandb
 
@@ -49,6 +49,7 @@ class NeurASP(object):
         self.mvpp = {'nnProb': [], 'atom': [], 'nnPrRuleNum': 0, 'program': ''}
         self.yoloInfo = [] # (beta version; used when e="yolo") a list for yolo neural network to make prediction, each element is of the form [m, t, domain]
         self.mvpp['program'], self.mvpp['program_pr'], self.mvpp['program_asp'] = self.parse(obs='')
+        # print("The nn outputs: ", self.nnOutputs)
         self.stableModels = [] # a list of stable models, where each stable model is a list
 
 
@@ -213,6 +214,7 @@ class NeurASP(object):
                         sys.exit()
                 else:
                     self.nnOutputs[m][t] = self.nnMapping[m](dataTensor).view(-1).tolist()
+                    print("The network prob is: ", self.nnOutputs[m][t])
 
         # Step 3: turn the NN outputs (from usual classification neurual networks) into a set of MVPP probabilistic rules
         for ruleIdx in range(self.mvpp['nnPrRuleNum']):
@@ -266,9 +268,9 @@ class NeurASP(object):
         else:
             dmvpp = MVPP(self.mvpp['program'])
 
-        # #Initialize weights and biases
-        # wandb.init(project="Intellizenz", entity="elsaravana")
-        wandb.init(id="ls6fe5ex", project="Intellizenz", resume=True, entity="elsaravana")
+        #Initialize weights and biases
+        wandb.init(project="Intellizenz", entity="elsaravana")
+        # wandb.init(id="ls6fe5ex", project="Intellizenz", resume=True, entity="elsaravana")
         wandb.config = {
                 "learning_rate": 0.001,
                 "epochs": epoch
@@ -316,6 +318,7 @@ class NeurASP(object):
                         nnOutput[m][t] = torch.clamp(nnOutput[m][t], min=10e-8, max=1.-10e-8)
 
                         self.nnOutputs[m][t] = nnOutput[m][t].view(-1).tolist()
+
                         # initialize the semantic gradients for each output
                         self.nnGradients[m][t] = [0.0 for i in self.nnOutputs[m][t]]
 
@@ -330,11 +333,20 @@ class NeurASP(object):
                                 loss = alpha * criterion(nnOutput[m][t].view(-1, self.n[m]), labelTensor)
                             loss.backward(retain_graph=True)
 
+                # print("the output probabilities : ",self.nnOutputs[m][t])
+                # print("the rules : ",self.mvpp['nnPrRuleNum'])
+                # print("the mvpp probs : ",self.mvpp['nnProb'])
+                # print("the mvpp parameters : ",dmvpp.parameters)
+                # print("self n: ", self.n)
+                # print("Normal probs: ", self.normalProbs)
+
                 # Step 2: if alpha is less than 1, we compute the semantic gradients
                 if alpha < 1:
                     # Step 2.1: replace the parameters in the MVPP program with nn outputs
                     for ruleIdx in range(self.mvpp['nnPrRuleNum']):
                         dmvpp.parameters[ruleIdx] = [self.nnOutputs[m][t][i*self.n[m]+j] for (m, i, t, j) in self.mvpp['nnProb'][ruleIdx]]
+                        # print("Updated mvpp parameters : ",dmvpp.parameters)
+
                         if len(dmvpp.parameters[ruleIdx]) == 1:
                             dmvpp.parameters[ruleIdx] = [dmvpp.parameters[ruleIdx][0], 1-dmvpp.parameters[ruleIdx][0]]
 
@@ -360,6 +372,8 @@ class NeurASP(object):
                     else:
                         if method == 'exact':
                             gradients = dmvpp.gradients_one_obs(obsList[dataIdx], opt=opt)
+                            # print("Gradients: ", gradients)
+                            # print("=========================")
                         elif method == 'sampling':
                             models = dmvpp.sample_obs(obsList[dataIdx], num=10)
                             gradients = dmvpp.mvppLearn(models)
@@ -418,12 +432,14 @@ class NeurASP(object):
                     pickle.dump(self.stableModels, fp)
                 savePickle = False
 
-            print('NN mapping: ',self.nnMapping)
-
             #Store the model after every epoch
             current_time = time.time()
             time_array = [current_time, start_time]
             m = self.nnMapping['vgsegment'] #model
+
+            # sfsdfsd = self.testInferenceResults(test_dataList, test_queryList)
+            # print("Test accuracy: ", sfsdfsd)
+            # print("Train accuracy: ", accuracyTrain)
 
             print('Storing the trained model into {}'.format(saveModelPath))
             torch.save({"intellizenz_net":  m.state_dict(), 
@@ -440,7 +456,7 @@ class NeurASP(object):
             accuracyTrain, singleAccuracyTrain, _, _, _ = testNN(model=m, testLoader=train_loader, device=self.device)
 
             probas = [x for sublist in probas for x in sublist] # probas dim-(n_samples, n_classes)
-
+            
             wandb.log({"train_accuracy": accuracyTrain,
                         "test_accuracy": accuracy})
 
@@ -453,7 +469,7 @@ class NeurASP(object):
             wandb.log({"roc" : wandb.plot.roc_curve(y_true=y_target, y_probas=probas,
                             labels=['Segment 0-50€', 'Segment 50-100€', 'Segment >100€'], classes_to_plot=[0, 1, 2])})
 
-            print(f'{accuracyTrain:0.2f}\t{accuracy:0.2f}') 
+            print(f'{accuracyTrain:0.2f}\t{accuracy:0.2f}')     
 
 
     def testNN(self, nn, testLoader):
@@ -471,7 +487,7 @@ class NeurASP(object):
         singleTotal = 0
         with torch.no_grad():
             for data, target in testLoader:
-                output = self.nnMapping[nn](data.to(self.device))
+                output = self.nnMapping[nn](data.to(self.device))                
                 if target.shape == output.shape[:-1]:
                     pred = output.argmax(dim=-1) # get the index of the max value
                 elif target.shape == output.shape:
@@ -502,7 +518,11 @@ class NeurASP(object):
         correct = 0
         for dataIdx, data in enumerate(dataList):
             models = self.infer(data, obs=':- mistake.', mvpp=self.mvpp['program_asp'])
+            # models = self.infer(data, obs=obsList[dataIdx], mvpp=self.mvpp['program_asp'])
             for model in models:
+                # print("The models are: ", model)
+                # print("The obslist are: ", obsList[dataIdx])
+                # print("Satisfy level are: ", self.satisfy(model, obsList[dataIdx]))
                 if self.satisfy(model, obsList[dataIdx]):
                     correct += 1
                     break

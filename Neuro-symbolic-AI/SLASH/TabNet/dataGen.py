@@ -2,11 +2,24 @@ from torch.utils.data import Dataset
 import torch
 
 import os, sys; 
-column_path = os.path.dirname(os.path.realpath('C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/column.py'))
+column_path = os.path.dirname(os.path.relpath('/Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/Neuro-symbolic-AI/column.py'))
+
 if sys.path.__contains__(column_path)==False:
     sys.path.append(column_path)
 
 import column
+
+# Normalize the values in the column between [0,1] using min-max-scaling
+def normalize_columns(dataframe, columns):
+    # copy the data
+    df_min_max_scaled = dataframe.copy()
+    
+    # apply normalization technique
+    for each_column in columns:
+        df_min_max_scaled[each_column] = (df_min_max_scaled[each_column] - df_min_max_scaled[each_column].min()) / (df_min_max_scaled[each_column].max() - df_min_max_scaled[each_column].min())    
+    
+    # Return normalized data
+    return df_min_max_scaled
 
 class Intellizenz(Dataset):
     def __init__(self, df):
@@ -16,15 +29,14 @@ class Intellizenz(Dataset):
         # features = column.features_v9 #9 features - with tarif
         # features = column.features_v10 #21 features - with tarif
 
-        features = column.features_v2 #140 features - without tarif_bez
-        # features = column.features_v8 #78 features - with tarif_bez
-        
-        # X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso','tarif_bez'])] # 140 features
-        # y = data_df['veranst_segment']
-        # tarif = data_df['tarif_bez']
+        # features = column.features_v2 #140 features - without tarif_bez
+        # features = column.anonymized_features_v1 #140 features - without tarif_bez
+        features = column.features_v8 #78 features - with tarif_bez
 
-        X = df[features] #140 or 78 or 21 Features
-        y = df['veranst_segment']
+        data_df_normalized = normalize_columns(df, features)
+
+        X = data_df_normalized[features] #140 or 78 or 21 Features
+        y = data_df_normalized['veranst_segment']
         tarif = df['tarif_bez']
 
         self.X = torch.Tensor(X.values) #dimension: [n, 140] or [n, 78] or [n, 21]
@@ -47,9 +59,10 @@ class Intellizenz(Dataset):
         data = {'t1':dataTensor}
         ta1 = self.tarif[index]
         # query = ":- not event(t1,{}). ".format(int(self.y[index]))
-        query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),self.tarif[index])
-        # query = ":- not event(t1,{},{}). \ntarif({}).".format(ta1,int(self.y[index]),self.tarif[index])
+        # query = ":- not event(t1,{}). \ntarif({}).".format(int(self.y[index]),self.tarif[index])
+        query = ":- not event(t1,{},{}). \ntarif({}).".format(ta1,int(self.y[index]),self.tarif[index])
         # query = ":- not event({},{}). \ntarif({}).".format(ta1,int(self.y[index]),self.tarif[index])
+
         return data, query
 
 class Intellizenz_Data(Dataset):
@@ -60,14 +73,14 @@ class Intellizenz_Data(Dataset):
         # features = column.features_v9 #9 features - with tarif
         # features = column.features_v10 #21 features - with tarif
 
-        features = column.features_v2 #140 features - without tarif_bez        
-        # features = column.features_v8 #78 features - with tarif_bez
+        # features = column.features_v2 #140 features - without tarif_bez
+        # features = column.anonymized_features_v1 #140 features - without tarif_bez   
+        features = column.features_v8 #78 features - with tarif_bez
         
-        # X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso', 'tarif_bez'])] #140 features 
-        # y = data_df['veranst_segment']
+        data_df_normalized = normalize_columns(df, features)
 
-        X = df[features] #140 or 78 or 21 Features
-        y = df['veranst_segment']
+        X = data_df_normalized[features] #140 or 78 or 21 Features
+        y = data_df_normalized['veranst_segment']
 
         self.X = torch.Tensor(X.values) #dimension: [n, 140] or [n, 78] or [n, 21]
         self.y = torch.Tensor(y.values) #dimension: [n]

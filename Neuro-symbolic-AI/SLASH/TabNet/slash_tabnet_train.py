@@ -4,8 +4,9 @@ from tabnet_nn import TabNetClass
 from dataGen import *
 
 import os, sys; 
-parent_directory = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/SLASH' 
-column_path = os.path.dirname(os.path.realpath('C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/column.py'))
+parent_directory = '/Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/Neuro-symbolic-AI/SLASH' 
+
+column_path = os.path.dirname(os.path.realpath('/Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/Neuro-symbolic-AI/column.py'))
 if sys.path.__contains__(column_path)==False:
     sys.path.append(column_path)
 
@@ -24,19 +25,52 @@ import time
 import column
 from sklearn.preprocessing import LabelEncoder
 
+
+
+
 #############################
 # SLASH program
 #############################
+# program ='''
+# row(t1).
+
+# npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
+# event(T,C) :- tabnet_vgsegment(0,+T,-C).
+
+# :- event(T,C), tarif(TA), TA=56, C=0 .
+# :- event(T,C), tarif(TA), TA=56, C=1 . 
+
+# '''
+
+
 program ='''
+
 row(t1).
-
+ 
 npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
-event(T,C) :- tabnet_vgsegment(0,+T,-C).
+event(T,TA,C) :- tabnet_vgsegment(0,+T,-C), tarif(TA).
 
-:- event(T,C), tarif(TA), TA=56, C=0 .
-:- event(T,C), tarif(TA), TA=56, C=1 . 
+% It's a mistake if the tarif 26,56 belongs to class 0 or class 1
+:- event(T,TA,C), TA=(26;56), C=0 .
+:- event(T,TA,C), TA=(26;56), C=1 .
+
+% It's a mistake if the following six tarifs belongs to class 1 or class 2.
+:- event(T,TA,C), TA=(1;77;24;69;23;76), C=1 .
+:- event(T,TA,C), TA=(1;77;24;69;23;76), C=2 .
+   
+
+% It's a mistake if the following two tarifs belongs to class 0.
+:- event(T,TA,C), TA=(55;17), C=0 .
+
+% It's a mistake if the following tarif belongs to class 1.
+:- event(T,TA,C), TA=(68), C=1 .
+
+% It's a mistake if the following six tarifs belongs to class 2.
+:- event(T,TA,C), TA=(73;9;71;4;13;14), C=2 .
 
 '''
+
+
 
 #############################
 # program ='''
@@ -103,18 +137,20 @@ def slash_tabnet(exp_name, exp_dict):
 
     print("Experiment parameters:", exp_dict)
 
-    # wandb.init(project="Intellizenz", entity="elsaravana")
+    wandb.init(project="Intellizenz", entity="elsaravana")
     # # wandb.init(id="zqwqu6ho", project="Intellizenz", resume=True, entity="elsaravana")
     
-    # wandb.config = {
-    #     "learning_rate": exp_dict['lr'],
-    #     "epochs": exp_dict['epochs'],
-    #     "batch_size": exp_dict['bs']
-    # }
+    wandb.config = {
+        "learning_rate": exp_dict['lr'],
+        "epochs": exp_dict['epochs'],
+        "batch_size": exp_dict['bs']
+    }
 
-    data_path = column.data_path_2016_2020_v3 # Most 30 frequent features
+    # data_path = column.data_path_2016_2020_v3 # Most 30 one hot encoded frequent features
+    # data_path = column.anony_data_path_2016_2020_v1 # Most 30 one hot encoded frequent features
+    
     # data_path = column.data_path_2016_2020_v4 # Leave-one-out target encoding features - with label encoded tarif_bez value
-    # data_path = column.data_path_2016_2020_v5 # Leave-one-out target encoding features - with raw tarif_bez value
+    data_path = column.data_path_2016_2020_v5 # Leave-one-out target encoding features - with raw tarif_bez value
     df = pd.read_parquet(data_path)
 
     class_frequency = df.groupby('veranst_segment')['veranst_segment'].transform('count')
@@ -132,17 +168,20 @@ def slash_tabnet(exp_name, exp_dict):
     all_tarifs_le = [e for e in df_sampled['tarif_bez']]
 
     tarif_classes=le.inverse_transform(all_tarifs_le).tolist()
-    index_of_tarif = tarif_classes.index('U-ST I (MUSIKER) NL')
-    print('The index is: ',index_of_tarif)
-    print('The label encoded value is: ',all_tarifs_le[index_of_tarif])
+    # index_of_tarif = tarif_classes.index('U-ST I (MUSIKER) NL')
+    # print('The index is: ',index_of_tarif)
+    # print('The label encoded value is: ',all_tarifs_le[index_of_tarif])
 
     # df_sampled = df_sampled[df_sampled['tarif_bez']==50][:3]
 
-    feature_columns = column.features_v2 #141 features - with tarif_bez
+    # feature_columns = column.anonymized_features_v1 
+    feature_columns = column.features_v8 #78 features - with tarif_bez
     target = "veranst_segment"
-    all_columns = feature_columns + ['tarif_bez', target]
+    # all_columns = feature_columns + ['tarif_bez', target]
+    all_columns = feature_columns + [target]
     df_sampled = df_sampled[all_columns]
     # feature_columns = column.features_v2 #140 features - without tarif_bez
+    # feature_columns = column.anonymized_features_v1 #140 features - without tarif_bez
     # feature_columns = column.features_v8 #78 features - with tarif_bez
     # feature_columns = column.features_v9 #9 features - with tarif 
     # feature_columns = column.features_v10 #21 features - with tarif
@@ -156,12 +195,20 @@ def slash_tabnet(exp_name, exp_dict):
 
     cat_idxs = [ i for i, f in enumerate(feature_columns) if f in categorical_columns]
     cat_dims = [ categorical_dims[f] for i, f in enumerate(feature_columns) if f in categorical_columns]
-    print(cat_idxs)
-    print(cat_idxs)
 
     #NETWORKS
     if exp_dict['credentials']=='STN':
-        model = TabNetClass(input_dim=140, output_dim= 3,
+        # model = TabNetClass(input_dim=140, output_dim= 3,
+        #                     n_d=64, n_a=64, n_steps=5,
+        #                     gamma=1.5, n_independent=2, n_shared=2,
+        #                     cat_idxs=cat_idxs,
+        #                     cat_dims=cat_dims,
+        #                     cat_emb_dim=2,
+        #                     lambda_sparse=1e-4, momentum=0.3,
+        #                     epsilon=1e-15, virtual_batch_size=exp_dict['bs']/8, 
+        #                     mask_type='entmax' # sparsemax
+        #                     )
+        model = TabNetClass(input_dim=78, output_dim= 3,
                             n_d=64, n_a=64, n_steps=5,
                             gamma=1.5, n_independent=2, n_shared=2,
                             cat_idxs=cat_idxs,
@@ -171,16 +218,6 @@ def slash_tabnet(exp_name, exp_dict):
                             epsilon=1e-15, virtual_batch_size=exp_dict['bs']/8, 
                             mask_type='entmax' # sparsemax
                             )
-        # model = TabNetClass(input_dim=78, output_dim= 3,
-        #                     n_d=64, n_a=64, n_steps=5,
-        #                     gamma=1.5, n_independent=2, n_shared=2,
-                            # cat_idxs=cat_idxs,
-                            # cat_dims=cat_dims,
-                            # cat_emb_dim=2,
-        #                     lambda_sparse=1e-4, momentum=0.3,
-        #                     epsilon=1e-15, virtual_batch_size=exp_dict['bs']/8, 
-                        #    mask_type='entmax' # sparsemax
-        #                     )
         # model = TabNetClass(input_dim=21, output_dim= 3,
         #                    n_d=64, n_a=64, n_steps=5,
         #                    gamma=1.5, n_independent=2, n_shared=2,
@@ -282,8 +319,8 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
         #test accuracy
         train_acc, _, _, _, _ = SLASHobj.testNetwork('tabnet_vgsegment', train_loader, ret_confusion=False)
         test_acc, _, preds, targets, probas = SLASHobj.testNetwork('tabnet_vgsegment', test_loader, ret_confusion=False)
-        print('The preds: ',preds)
-        print('The targets: ',targets)
+        # print('The preds: ',preds)
+        # print('The targets: ',targets)
 
         
         # test_acc, _, preds, targets, probas = SLASHobj.testNetworkWithQuery('tabnet_vgsegment', test_data_loader, ret_confusion=False)

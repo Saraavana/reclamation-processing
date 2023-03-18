@@ -1,0 +1,26 @@
+2023-03-18 08:01:52,171 INFO    MainThread:23441 [wandb_setup.py:_flush():68] Configure stats pid to 23441
+2023-03-18 08:01:52,171 INFO    MainThread:23441 [wandb_setup.py:_flush():68] Loading settings from /Users/saravana/.config/wandb/settings
+2023-03-18 08:01:52,172 INFO    MainThread:23441 [wandb_setup.py:_flush():68] Loading settings from /Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/wandb/settings
+2023-03-18 08:01:52,172 INFO    MainThread:23441 [wandb_setup.py:_flush():68] Loading settings from environment variables: {'_require_service': 'True'}
+2023-03-18 08:01:52,172 INFO    MainThread:23441 [wandb_setup.py:_flush():68] Inferring run settings from compute environment: {'program_relpath': 'Neuro-symbolic-AI/SLASH/TabNet/slash_tabnet_experiments.py', 'program': '/Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/Neuro-symbolic-AI/SLASH/TabNet/slash_tabnet_experiments.py'}
+2023-03-18 08:01:52,172 INFO    MainThread:23441 [wandb_init.py:_log_setup():492] Logging user logs to /Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/wandb/run-20230318_080152-h134oi97/logs/debug.log
+2023-03-18 08:01:52,173 INFO    MainThread:23441 [wandb_init.py:_log_setup():493] Logging internal logs to /Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/wandb/run-20230318_080152-h134oi97/logs/debug-internal.log
+2023-03-18 08:01:52,173 INFO    MainThread:23441 [wandb_init.py:init():532] calling init triggers
+2023-03-18 08:01:52,173 INFO    MainThread:23441 [wandb_init.py:init():538] wandb.init called with sweep_config: {}
+config: {}
+2023-03-18 08:01:52,173 INFO    MainThread:23441 [wandb_init.py:init():588] starting backend
+2023-03-18 08:01:52,173 INFO    MainThread:23441 [wandb_init.py:init():592] setting up manager
+2023-03-18 08:01:52,183 INFO    MainThread:23441 [backend.py:_multiprocessing_setup():106] multiprocessing start_methods=spawn,fork,forkserver, using: spawn
+2023-03-18 08:01:52,190 INFO    MainThread:23441 [wandb_init.py:init():599] backend started and connected
+2023-03-18 08:01:52,197 INFO    MainThread:23441 [wandb_init.py:init():687] updated telemetry
+2023-03-18 08:01:52,224 INFO    MainThread:23441 [wandb_init.py:init():727] communicating run to backend with 60.0 second timeout
+2023-03-18 08:01:56,348 INFO    MainThread:23441 [wandb_run.py:_on_init():2134] communicating current version
+2023-03-18 08:01:56,612 INFO    MainThread:23441 [wandb_run.py:_on_init():2143] got version response upgrade_message: "wandb version 0.14.0 is available!  To upgrade, please run:\n $ pip install wandb --upgrade"
+
+2023-03-18 08:01:56,612 INFO    MainThread:23441 [wandb_init.py:init():775] starting run threads in backend
+2023-03-18 08:01:56,741 INFO    MainThread:23441 [wandb_run.py:_console_start():2114] atexit reg
+2023-03-18 08:01:56,741 INFO    MainThread:23441 [wandb_run.py:_redirect():1969] redirect: SettingsConsole.WRAP_RAW
+2023-03-18 08:01:56,742 INFO    MainThread:23441 [wandb_run.py:_redirect():2034] Wrapping output streams.
+2023-03-18 08:01:56,742 INFO    MainThread:23441 [wandb_run.py:_redirect():2059] Redirects installed.
+2023-03-18 08:01:56,742 INFO    MainThread:23441 [wandb_init.py:init():817] run started, returning control to user process
+2023-03-18 08:02:23,935 WARNING MsgRouterThr:23441 [router.py:message_loop():77] message_loop has been closed

@@ -28,7 +28,9 @@ def pad_3d_tensor(target, framework, bs, ruleNum, max_classes):
 
 
     if framework == 'torch':
-        padded = torch.stack([torch.hstack((row,  torch.tensor([0] * (max_classes - len(row)), device="cuda" ) ) ) for batch in target for row in batch ]).view(ruleNum, bs, max_classes)
+        # padded = torch.stack([torch.hstack((row,  torch.tensor([0] * (max_classes - len(row)), device="cuda" ) ) ) for batch in target for row in batch ]).view(ruleNum, bs, max_classes)
+        padded = torch.stack([torch.hstack((row,  torch.tensor([0] * (max_classes - len(row)), device="cpu" ) ) ) for batch in target for row in batch ]).view(ruleNum, bs, max_classes)
+
     return padded
 
 
@@ -193,9 +195,9 @@ class SLASH(object):
         # 3. 'atom': a list of list of atoms, where each list of atoms is corresponding to a prob. rule
         # 4. 'networkPrRuleNum': an integer denoting the number of probabilistic rules generated from network
         self.mvpp = {'networkProb': [], 'atom': [], 'networkPrRuleNum': 0, 'program': '','networkProbSinglePred':{}}
-        print('The mvpp is: ',self.mvpp)
+        # print('The mvpp is: ',self.mvpp)
         self.mvpp['program'], self.mvpp['program_pr'], self.mvpp['program_asp'], self.npp_operators = self.parse(query='')
-        print('The network outputs: ',self.networkOutputs)
+        # print('The network outputs: ',self.networkOutputs)
         self.stableModels = [] # a list of stable models, where each stable model is a list
         self.prob_q = [] # a list of probabilites for each query in the batch
         
@@ -482,7 +484,7 @@ class SLASH(object):
             # Type 2:
             # dataset_loader format ---> [{'t1':tensor of features for 100 data}, rules for 100 data]. Here batch_size = 100
             # rules: (':- not forest(p1,0). ', ':- not forest(p1,1).' and so on)
-            print('Network types: ',self.networkTypes)
+            # print('Network types: ',self.networkTypes)
             for data_batch, query_batch in tqdm(dataset_loader):
                 start_time = time.time()
                 
@@ -575,6 +577,7 @@ class SLASH(object):
                                     networkOutput[m][o][t] = ablation_output[:,16:19]
                                 elif m == 'tabnet_vgsegment':
                                     networkOutput[m][o][t] = self.networkMapping[m].forward(dataTensor.to(self.device))    
+                                    # print("The network output is: ", networkOutput[m][o][t])
                                 else:
                                     networkOutput[m][o][t] = self.networkMapping[m].forward(
                                                                                     dataTensor.to(self.device),
@@ -691,6 +694,8 @@ class SLASH(object):
                             networkOutput_stacked.append(networkOutput[m][o][t])
 
                 networkOutput_stacked = pad_3d_tensor(networkOutput_stacked, 'torch', len(query_batch),self.mvpp['networkPrRuleNum'],self.max_n)
+                # Since Torch not compiled with CUDA enabled in macOS; calculated using 'numpy'
+                # networkOutput_stacked = pad_3d_tensor(networkOutput_stacked, 'numpy', len(query_batch),self.mvpp['networkPrRuleNum'],self.max_n).to(device=self.device)
 
                 #multiply every probability with its gradient 
                 result = torch.einsum("bjc, jbc -> bjc", gradient_batch_list, networkOutput_stacked)
@@ -770,10 +775,10 @@ class SLASH(object):
                 for midx, m in enumerate(networkLLOutput):
                     self.networkMapping[m].module.em_update()    
 
-            print("avg loss:", np.mean(total_loss))
-            print("forward time: ", forward_time)
-            print("asp time:", asp_time)
-            print("backward time: ", backward_time)
+            # print("avg loss:", np.mean(total_loss))
+            # print("forward time: ", forward_time)
+            # print("asp time:", asp_time)
+            # print("backward time: ", backward_time)
             return np.mean(total_loss)
 
 
@@ -890,10 +895,10 @@ class SLASH(object):
                 
                 
                 stable_mmodels = dmvpp.find_one_most_probable_SM_under_query_noWC(query='tarif(50).')
-                print('The models are: ',stable_mmodels)
+                # print('The models are: ',stable_mmodels)
                 stable_model_probs = dmvpp.sum_probability_for_stable_models(stable_mmodels)
-                print('The correct probability of true class is: ',stable_model_probs)
-                print('The predicted probability is: ',output)
+                # print('The correct probability of true class is: ',stable_model_probs)
+                # print('The predicted probability is: ',output)
 
                 output_list = [each for each_list in output.tolist() for each in each_list]
                 index_of_output_prob_with_query = output_list.index(stable_model_probs.item())

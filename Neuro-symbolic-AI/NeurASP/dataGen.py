@@ -4,8 +4,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 import os, sys; 
-parent_directory = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/SLASH' 
-column_path = os.path.dirname(os.path.realpath('C:/Users/sgopalakrish/Downloads/intellizenz-model-training/Neuro-symbolic-AI/column.py'))
+parent_directory = '/Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/Neuro-symbolic-AI/SLASH' 
+column_path = os.path.dirname(os.path.realpath('/Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/Neuro-symbolic-AI/column.py'))
 if sys.path.__contains__(column_path)==False:
     sys.path.append(column_path)
 
@@ -65,17 +65,32 @@ def get_class_distribution(obj):
             
     return count_dict
 
+# Normalize the values in the column between [0,1] using min-max-scaling
+def normalize_columns(dataframe, columns):
+    # copy the data
+    df_min_max_scaled = dataframe.copy()
+    
+    # apply normalization technique
+    for each_column in columns:
+        df_min_max_scaled[each_column] = (df_min_max_scaled[each_column] - df_min_max_scaled[each_column].min()) / (df_min_max_scaled[each_column].max() - df_min_max_scaled[each_column].min())    
+    
+    # Return normalized data
+    return df_min_max_scaled
+
 class Intellizenz(Dataset):
     # def __init__(self, path):
     def __init__(self, data_df):
         # features = column.features_v5 #143 features
         # features = column.features_v10 #21 features - with tarif_bez
-        # features = column.features_v8 #78 features including tarif_bez
-        features = column.features_v2 #140 features # doesn't include tarif_bez
+        features = column.features_v8 #78 features including tarif_bez
+        # features = column.features_v2 #140 features # doesn't include tarif_bez
+        # features = column.anonymized_features_v1 #140 features # doesn't include tarif_bez
+
+        data_df_normalized = normalize_columns(data_df, features)
 
         # X = data_df.loc[:,~data_df.columns.isin(['veranst_segment','vg_inkasso','tarif_bez'])] #140 features 
-        X = data_df[features]
-        y = data_df['veranst_segment']
+        X = data_df_normalized[features]
+        y = data_df_normalized['veranst_segment']
         tarif = data_df['tarif_bez']
 
         self.X = torch.Tensor(X.values) #dimension: [n, 140] or [n, 78] or [n, 21]
@@ -131,11 +146,12 @@ class Intellizenz_Test(Dataset):
 # and its target value event(veranst) segment(from 0 to 2)
 # data_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v3.parquet.gzip'
 
-# data_path = column.data_path_2016_2020_v5 #Leave-one-out-target-encoding features
-# df = pd.read_parquet(data_path)
-
-data_path = column.data_path_2016_2020_v3 #one hot encoded features for 30 frequent features
+data_path = column.data_path_2016_2020_v5 #Leave-one-out-target-encoding features
 df = pd.read_parquet(data_path)
+
+# data_path = column.data_path_2016_2020_v3 #one hot encoded features for 30 frequent features
+# data_path = column.anony_data_path_2016_2020_v1 #one hot encoded features for 30 frequent features
+# df = pd.read_parquet(data_path)
 
 class_frequency = df.groupby('veranst_segment')['veranst_segment'].transform('count')
 # df_sampled = df.sample(n=70000, weights=class_frequency, random_state=2)
@@ -151,15 +167,11 @@ index_of_tarif = tarif_classes.index('U-ST I (MUSIKER) NL')
 print('The index is: ',index_of_tarif)
 print('The label encoded value is: ',all_tarifs_le[index_of_tarif])
 
+# df_sampled = df_sampled[df_sampled['tarif_bez'] == 56][:2]
+
 
 df_train, df_test = train_test_split(df_sampled, test_size=0.2, random_state=1)
 
-# skf = StratifiedKFold(n_splits=2)
-# K folds contains same distributions as original class distribution from actual dataframe
-# Splits train and test size equally to 'k' folds
-# for train_idx, test_idx in skf.split(df_sampled[column.features_v5],df_sampled['veranst_segment']):
-#     df_train=df_sampled.iloc[train_idx]
-#     df_test=df_sampled.iloc[test_idx]
     
 train_weighted_sampler, train_class_weights = get_weighted_sampler(df_train)
 test_weighted_sampler, test_class_weights = get_weighted_sampler(df_test)
@@ -194,10 +206,32 @@ for data_batch, label_batch, tarif_batch in train_loader:
 
             # query = ":- not event(t1,{}). ".format(int(y))
             query = ":- not event(t1,{}). \ntarif({}).".format(int(y),tarif)
+            # query = "tarif({}).".format(tarif)
             # query = ":- not event({},{}). \ntarif({}).".format(tarif,int(y),tarif)
 
             dataList.append(data)
             queryList.append(query)
+
+
+test_dataList = []
+test_queryList = []
+
+#test_loader has n batches, each batch contains 64 values 
+# Each data batch shape is [64,140]
+# Each label batch shape is [64]
+for data_batch, label_batch, tarif_batch in test_loader: 
+
+    for i, data in enumerate(data_batch):
+            x = data_batch[i]
+            y = label_batch[i]
+            tarif = tarif_batch[i]
+
+            data = {'t1':x}
+
+            query = ":- not event(t1,{}). \ntarif({}).".format(int(y),tarif)
+
+            test_dataList.append(data)
+            test_queryList.append(query)
 
 
 # for data_batch, label_batch, tarif_batch in train_loader: 

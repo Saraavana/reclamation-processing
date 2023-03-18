@@ -61,7 +61,18 @@ def testNN(model, testLoader, device):
     with torch.no_grad():
         for data, target, _ in testLoader:
             output = model(data.to(device))
+
+            # print("The output is: ", output)
+            # print("The target is: ", target)
+
             probas.append(output.cpu().detach().tolist())
+
+            # print("The probassss: ", probas)
+            # print("The target shape is: ", target.shape)
+            # print("Output shape: ", output.shape[:-1])
+            # print("Actual Output shape: ", output.shape)
+            # print("Index of maximum probability: ", output.argmax(dim=-1))
+
             if target.shape == output.shape[:-1]:
                 pred = output.argmax(dim=-1) # get the index of the max value
             elif target.shape == output.shape:

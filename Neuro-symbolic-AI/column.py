@@ -1,11 +1,79 @@
 data_path_2016_2020_v3 = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v3.parquet.gzip'
+
+anony_data_path_2016_2020_v1 = '/Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/data/export_anonymized_features_2016_2020_v1.parquet.gzip'
+
 train_data_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_training_features_2016_2020_v2.parquet.gzip'
 test_data_path = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_testing_features_2016_2020_v2.parquet.gzip'
 
 # label encoded tarif-bez - with leave-one-hot- target encoding features 
 data_path_2016_2020_v4 = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v4.parquet.gzip'
 # label unencoded tarif-bez - with leave-one-hot- target encoding features
-data_path_2016_2020_v5 = 'C:/Users/sgopalakrish/Downloads/intellizenz-model-training/data/export_features_2016_2020_v5.parquet.gzip'
+data_path_2016_2020_v5 = '/Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/data/export_features_2016_2020_v5.parquet.gzip'
+
+# 30 venue, 30 tarif, 30 band, 30 promoter , 16 state, 4 seasonality
+anonymized_features_v1 = [
+#  4 seasonality
+'vg_datum_season',	'vg_datum_month', 'vg_datum_day_of_week', 'vg_datum_year',
+
+# 30 venues
+'place_kirche', 'place_hotel', 'place_cafe',
+'place_theater', 'place_club', 'place_halle',	
+'place_kulturzentrum', 'place_gaststaette', 'place_buergerhaus',	
+'place_festhalle', 'place_stadthalle', 'place_festzelt', 
+'place_schloss', 'place_pub', 'place_restaurant', 
+'place_gasthaus', 'place_bar', 'place_kurhaus', 
+'place_kulturhaus', 'place_kabarett', 'place_rathaus', 
+'place_arena', 'place_gasthof', 'place_park', 
+'place_wandelhalle', 'place_schlachthof', 'place_turnhalle', 
+'place_staatsbad', 'place_zelt', 'place_mehrzweckhalle', 
+
+# 30 tarifs
+'tarif_u-v ii. 1 (+ii 2)', 'tarif_u-k (musiker)', 'tarif_u-k (musiker) mindestverguetung', 
+'tarif_u-st i. (musiker)', 'tarif_u-k i (+ ii 2b) - mit sonstigem geldwerten vorteil', 
+'tarif_u-st i (musiker) nl', 'tarif_u-v iii. 1', 'tarif_u-v iii. 2', 
+'tarif_u-k iii. 2d) (musiker) - vor geladenen gaesten', 'tarif_variete i (musiker)', 
+'tarif_u-v vi. b', 'tarif_e (musiker)', 'tarif_p-k i. (u-musik)', 
+'tarif_u-k ii. (musiker) bis 50 min', 'tarif_u-k ii. (musiker) bis 20 min', 'tarif_e-p', 
+'tarif_u-k ii. (musiker) bis 25 min', 'tarif_u-k ii. (musiker) bis 15 min',	
+'tarif_u-k ii. (musiker) bis 30 min', 'tarif_u-k ii. (musiker) bis 10 min', 'tarif_u-st (musiker)', 
+'tarif_chorverband konzert u-musik', 'tarif_vk i 3 zirkusunternehmen (musiker)', 
+'tarif_u-k ii. (musiker) bis 5 min', 'tarif_u-k ii. (musiker) bis 35 min', 'tarif_u-k ii. (musiker) bis 40 min',
+'tarif_p-k i. (e-musik)', 'tarif_u-k ii (musiker) mindestverguetung', 
+'tarif_u-k ii. (musiker) bis 45 min', 'tarif_u-v vi. b mindestverguetung', 
+
+# 16 states
+'state_bavaria', 'state_baden-wuerttemberg', 'state_north rhine-westphalia', 
+'state_hesse', 'state_lower saxony', 'state_berlin', 
+'state_rhineland-palatinate', 'state_saxony', 'state_hamburg', 
+'state_thuringia', 'state_schleswig-holstein', 'state_brandenburg', 
+'state_saxony-anhalt', 'state_mecklenburg-western pomerania', 'state_saarland', 
+'state_bremen', 
+
+# 30 bands
+'band_hofmann ortmann ag', 'band_christoph löffler ag', 'band_margraf döring gbr', 
+'band_huhn trüb ag & co. ohg', 'band_finke haering ag', 'band_pergande neuschäfer ag', 
+'band_hornig täsche ohg mbh', 'band_ziegert scheel ag', 'band_adolph heser gmbh & co. ohg', 
+'band_hübel eckbauer ag', 'band_kensy gute gmbh & co. kgaa', 'band_ring flantz stiftung & co. kg', 
+'band_wende scheuermann gmbh & co. kg', 'band_pärtzelt bolnbach kg', 'band_bachmann ernst kg', 
+'band_hamann hethur stiftung & co. kgaa', 'band_nohlmans roskoth e.v.', 'band_schönland koch ii ag', 
+'band_hermighausen süßebier gmbh', 'band_juncken briemer stiftung & co. kg', 
+'band_lachmann heinrich gmbh & co. ohg', 'band_hendriks döring ag', 'band_bähr weihmann ag', 
+'band_beer reising ag', 'band_stumpf ritter gmbh & co. kgaa', 'band_thies stiebitz gbr', 
+'band_bärer jungfer gmbh & co. kg', 'band_trubin butte e.g.', 'band_römer steckel gmbh & co. kg', 
+'band_wiek schmiedt gmbh & co. ohg', 
+
+# 30 promoters
+'promoter_schmidtke reichmann gmbh & co. kg', 'promoter_heintze ag & co. kg', 'promoter_drubin gmbh', 
+'promoter_textor kg', 'promoter_schleich stiftung & co. kg', 'promoter_fiebig weinhage ag & co. kgaa', 
+'promoter_zobel carsten gbr', 'promoter_finke hethur e.g.', 'promoter_fröhlich sölzer gmbh', 
+'promoter_seip scholtz gmbh', 'promoter_margraf dörr ag & co. kg', 'promoter_bolzmann caspar gmbh & co. ohg', 
+'promoter_franke franke ag', 'promoter_sontag gmbh & co. ohg', 'promoter_wesack riehl gmbh & co. kg', 
+'promoter_röhrdanz', 'promoter_juncken eckbauer e.v.', 'promoter_gutknecht fechner ag', 
+'promoter_knappe ag', 'promoter_flantz kensy gmbh & co. ohg', 'promoter_kohl kabus ag & co. kg', 
+'promoter_gunpf hertrampf ohg mbh', 'promoter_förster van der dussen ag & co. kg', 'promoter_mude eckbauer gmbh', 
+'promoter_metz ohg mbh', 'promoter_franke langern stiftung & co. kg', 'promoter_biggen hermann ag & co. ohg', 
+'promoter_wähner haase gmbh & co. kg', 'promoter_dippel koch kg', 'promoter_kitzmann ag', 
+]
 
 # 30 venue, 30 band, 16 state, 4 seasonality, 2 target features
 features_v1 = [

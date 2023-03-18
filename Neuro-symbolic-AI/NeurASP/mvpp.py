@@ -143,6 +143,7 @@ class MVPP(object):
     # k = 0 means to find all stable models
     def find_k_SM_under_obs(self, obs, k=3):
         program = self.pi_prime + obs
+        # print('The Program is: ', program)
         clingo_control = Control(["--warn=none", str(k)])
         models = []
         try:
@@ -152,6 +153,7 @@ class MVPP(object):
         clingo_control.ground([("base", [])])
         clingo_control.solve(on_model = lambda model: models.append(model.symbols(atoms=True)))
         models = [[str(atom) for atom in model] for model in models]
+        # print('The stable models are: ', models)
         return models
 
     # there might be some duplications in SMs when optimization option is used
@@ -188,6 +190,7 @@ class MVPP(object):
         @param obs: a string of a set of constraints/facts
         """
         program = self.pi_prime + obs + '\n'
+        
         # for each probabilistic rule with n atoms, add n weak constraints
         for ruleIdx, atoms in enumerate(self.pc):
             for atomIdx, atom in enumerate(atoms):
@@ -203,6 +206,7 @@ class MVPP(object):
         clingo_control.ground([("base", [])])
         clingo_control.solve(on_model = lambda model: models.append(model.symbols(atoms=True)))
         models = [[str(atom) for atom in model] for model in models]
+        
         return [models[-1]]
 
     def find_all_opt_SM_under_obs_WC(self, obs):
@@ -315,7 +319,12 @@ class MVPP(object):
 
     def mvppLearn(self, models):
         probs = [self.prob_of_interpretation(model) for model in models]
+        # print("the probas: ", probs)
         gradients = np.array([[0.0 for item in l] for l in self.parameters])
+        # print("The gradients: ", gradients)
+        # print("The learable: ", self.learnable)
+        # print("Rule learn: ", self.mvppLearnRule(0, models, probs))
+
         if len(models) != 0:
             # we compute the gradients w.r.t. the probs in each rule
             for ruleIdx,list_of_bools in enumerate(self.learnable):
