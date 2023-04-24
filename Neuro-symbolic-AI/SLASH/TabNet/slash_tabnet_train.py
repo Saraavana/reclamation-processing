@@ -31,44 +31,68 @@ from sklearn.preprocessing import LabelEncoder
 #############################
 # SLASH program
 #############################
+program ='''
+row(t1).
+
+npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
+event(T,C) :- tabnet_vgsegment(0,+T,-C).
+
+% :- event(T,C), tarif(TA), TA=56, C=0 .
+% :- event(T,C), tarif(TA), TA=56, C=1 . 
+
+'''
+
+
 # program ='''
+
 # row(t1).
-
+ 
 # npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
-# event(T,C) :- tabnet_vgsegment(0,+T,-C).
+# event(T,TA,C) :- tabnet_vgsegment(0,+T,-C), tarif(TA).
 
-# :- event(T,C), tarif(TA), TA=56, C=0 .
-# :- event(T,C), tarif(TA), TA=56, C=1 . 
+# % It's a mistake if the tarif 26,56 belongs to class 0 or class 1
+# :- event(T,TA,C), TA=(26;56), C=0 .
+# :- event(T,TA,C), TA=(26;56), C=1 .
+
+# % It's a mistake if the following six tarifs belongs to class 1 or class 2.
+# :- event(T,TA,C), TA=(1;77;24;69;23;76), C=1 .
+# :- event(T,TA,C), TA=(1;77;24;69;23;76), C=2 .
+   
+
+# % It's a mistake if the following two tarifs belongs to class 0.
+# :- event(T,TA,C), TA=(55;17), C=0 .
+
+# % It's a mistake if the following tarif belongs to class 1.
+# :- event(T,TA,C), TA=(68), C=1 .
+
+# % It's a mistake if the following six tarifs belongs to class 2.
+# :- event(T,TA,C), TA=(73;9;71;4;13;14), C=2 .
 
 # '''
 
+# program = '''
+# row(t1).
 
-program ='''
+# npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
+# event(T,C) :- tabnet_vgsegment(0,+T,-C), tarif(TA).
 
-row(t1).
- 
-npp(tabnet_vgsegment(1,T),[0,1,2]) :- row(T). 
-event(T,TA,C) :- tabnet_vgsegment(0,+T,-C), tarif(TA).
+# % It's a mistake if the tarif 26,56 belongs to class 0 or class 1
+# :- event(T,C), tarif(TA), TA=(26;56), C=0 .
+# :- event(T,C), tarif(TA), TA=(26;56), C=1 .
 
-% It's a mistake if the tarif 26,56 belongs to class 0 or class 1
-:- event(T,TA,C), TA=(26;56), C=0 .
-:- event(T,TA,C), TA=(26;56), C=1 .
+# % It's a mistake if the following six tarifs belongs to class 1 or class 2.
+# :- event(T,C), tarif(TA), TA=(1;77;24;69;23;76), C=1 .
+# :- event(T,C), tarif(TA), TA=(1;77;24;69;23;76), C=2 .   
 
-% It's a mistake if the following six tarifs belongs to class 1 or class 2.
-:- event(T,TA,C), TA=(1;77;24;69;23;76), C=1 .
-:- event(T,TA,C), TA=(1;77;24;69;23;76), C=2 .
-   
+# % It's a mistake if the following two tarifs belongs to class 0.
+# :- event(T,C), tarif(TA), TA=(55;17), C=0 .
 
-% It's a mistake if the following two tarifs belongs to class 0.
-:- event(T,TA,C), TA=(55;17), C=0 .
+# % It's a mistake if the following tarif belongs to class 1.
+# :- event(T,C), tarif(TA), TA=(68), C=1 .
 
-% It's a mistake if the following tarif belongs to class 1.
-:- event(T,TA,C), TA=(68), C=1 .
-
-% It's a mistake if the following six tarifs belongs to class 2.
-:- event(T,TA,C), TA=(73;9;71;4;13;14), C=2 .
-
-'''
+# % It's a mistake if the following six tarifs belongs to class 2.
+# :- event(T,C), tarif(TA), TA=(73;9;71;4;13;14), C=2 .
+# '''
 
 
 
@@ -137,14 +161,14 @@ def slash_tabnet(exp_name, exp_dict):
 
     print("Experiment parameters:", exp_dict)
 
-    wandb.init(project="Intellizenz", entity="elsaravana")
-    # # wandb.init(id="zqwqu6ho", project="Intellizenz", resume=True, entity="elsaravana")
+    # wandb.init(project="Intellizenz", entity="elsaravana")
+    # wandb.init(id="zqwqu6ho", project="Intellizenz", resume=True, entity="elsaravana")
     
-    wandb.config = {
-        "learning_rate": exp_dict['lr'],
-        "epochs": exp_dict['epochs'],
-        "batch_size": exp_dict['bs']
-    }
+    # wandb.config = {
+    #     "learning_rate": exp_dict['lr'],
+    #     "epochs": exp_dict['epochs'],
+    #     "batch_size": exp_dict['bs']
+    # }
 
     # data_path = column.data_path_2016_2020_v3 # Most 30 one hot encoded frequent features
     # data_path = column.anony_data_path_2016_2020_v1 # Most 30 one hot encoded frequent features
@@ -158,7 +182,15 @@ def slash_tabnet(exp_name, exp_dict):
     # df_sampled = df.sample(n=50000, weights=class_frequency, random_state=2)
     # df_sampled = df.sample(n=100000, weights=class_frequency, random_state=2)
     # df_sampled = df.sample(n=200000, weights=class_frequency, random_state=2)
-    df_sampled = df.sample(n=300000, weights=class_frequency, random_state=2)
+    # df_sampled = df.sample(n=300000, weights=class_frequency, random_state=2)
+    df_sampled = df.sample(n=5000, weights=class_frequency, random_state=2)
+
+    df1 = df_sampled[df_sampled["veranst_segment"]==0][:500]
+    df2 = df_sampled[df_sampled["veranst_segment"]==1][:500]
+    df3 = df_sampled[df_sampled["veranst_segment"]==2][:500]
+
+    df_sampled = pd.concat([df1, df2, df3], axis=0)
+
     # df_sampled = df.copy()
 
 
@@ -168,24 +200,24 @@ def slash_tabnet(exp_name, exp_dict):
     all_tarifs_le = [e for e in df_sampled['tarif_bez']]
 
     tarif_classes=le.inverse_transform(all_tarifs_le).tolist()
-    # index_of_tarif = tarif_classes.index('U-ST I (MUSIKER) NL')
-    # print('The index is: ',index_of_tarif)
-    # print('The label encoded value is: ',all_tarifs_le[index_of_tarif])
-
-    # df_sampled = df_sampled[df_sampled['tarif_bez']==50][:3]
+    index_of_tarif = tarif_classes.index('U-ST I (MUSIKER) NL')
+    print('The index is: ',index_of_tarif)
+    print('The label encoded value is: ',all_tarifs_le[index_of_tarif])
 
     # feature_columns = column.anonymized_features_v1 
     feature_columns = column.features_v8 #78 features - with tarif_bez
     target = "veranst_segment"
     # all_columns = feature_columns + ['tarif_bez', target]
     all_columns = feature_columns + [target]
-    df_sampled = df_sampled[all_columns]
+    # df_sampled = df_sampled[all_columns]
+
     # feature_columns = column.features_v2 #140 features - without tarif_bez
     # feature_columns = column.anonymized_features_v1 #140 features - without tarif_bez
     # feature_columns = column.features_v8 #78 features - with tarif_bez
-    # feature_columns = column.features_v9 #9 features - with tarif 
+    # feature_columns = column.features_v9 #9 features - with tarif
     # feature_columns = column.features_v10 #21 features - with tarif
 
+    # df_sampled = df_sampled[:5000]
 
     train_df, test_df = train_test_split(df_sampled, test_size=0.2, random_state=1)
     print('Length of train df: ',len(train_df))
@@ -228,7 +260,9 @@ def slash_tabnet(exp_name, exp_dict):
         #                    virtual_batch_size=exp_dict['bs']/8, 
         #                    mask_type='entmax' # sparsemax
         #                 )
-        slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df)
+
+        # slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df)
+        test_constraint(model, exp_dict, saveModelPath, train_df, test_df)
     else:
         print('##########################')
 
@@ -314,11 +348,12 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
         time_test = time.time()
 
         # To see gradients of the weights as histograms in the 
-        # wandb.watch(model)
+        wandb.watch(model)
 
         #test accuracy
         train_acc, _, _, _, _ = SLASHobj.testNetwork('tabnet_vgsegment', train_loader, ret_confusion=False)
         test_acc, _, preds, targets, probas = SLASHobj.testNetwork('tabnet_vgsegment', test_loader, ret_confusion=False)
+
         # print('The preds: ',preds)
         # print('The targets: ',targets)
 
@@ -371,3 +406,42 @@ def slash_with_tabnet(model, exp_dict, saveModelPath, train_df, test_df):
                     "exp_dict":exp_dict,
                     "program":program}, saveModelPath)
 
+def test_constraint(model, exp_dict, saveModelPath, train_df, test_df):
+    #trainable params
+    num_trainable_params = [sum(p.numel() for p in model.parameters() if p.requires_grad)]
+    num_params = [sum(p.numel() for p in model.parameters())]
+
+    print("training with {}({}) trainable params and {}({}) params in total".format(np.sum(num_trainable_params),num_trainable_params,np.sum(num_params),num_params)) 
+
+    ########
+    # Define nnMapping and optimizers, initialze SLASH object
+    ########
+    nnMapping = {'tabnet_vgsegment': model}
+    #optimizers and learning rate scheduling
+    optimizers = {'tabnet_vgsegment': torch.optim.Adam([
+                                            {'params':model.parameters()}],
+                                            lr=exp_dict['lr'], eps=1e-7)}
+    SLASHobj = slash.SLASH(program, nnMapping, optimizers)
+
+    #metric lists
+    train_acc_list = [] #stores acc for train 
+    test_acc_list = []  #and test
+
+    test_weighted_sampler, test_class_weights = utils.get_weighted_sampler(test_df)
+
+    startTime = time.time()
+    test_data_loader = torch.utils.data.DataLoader(Intellizenz(df=test_df), batch_size=exp_dict['bs'], sampler=test_weighted_sampler)
+        
+    saved_model = torch.load(saveModelPath)
+    model.load_state_dict(saved_model['intellizenz_net'])
+    
+    #optimizers and shedulers
+    optimizers['tabnet_vgsegment'].load_state_dict(saved_model['resume']['optimizer_intellizenz'])
+    start_e = saved_model['resume']['epoch']
+    
+    #metrics
+    train_acc_list = saved_model['train_acc_list']
+    test_acc_list = saved_model['test_acc_list'] 
+
+    # SLASHobj.testConstraint(dataset_loader = test_data_loader, mvppList = SLASHobj.mvpp["program"])
+    SLASHobj.testConstraint(test_data_loader)

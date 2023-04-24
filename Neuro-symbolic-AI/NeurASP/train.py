@@ -67,26 +67,26 @@ program = '''
 row(t1).
 
 nn(vgsegment(1,T),[0,1,2]) :- row(T). 
-event(T,C) :- vgsegment(0,T,C), tarif(TA).
+event(T,TA,C) :- vgsegment(0,T,C), tarif(TA).
 
 
 % It's a mistake if the tarif 26,56 belongs to class 0 or class 1
-:- event(T,C), tarif(TA), TA=(26;56), C=0 .
-:- event(T,C), tarif(TA), TA=(26;56), C=1 .
+:- event(T,TA,C), tarif(TA), TA=(26;56), C=0 .
+:- event(T,TA,C), tarif(TA), TA=(26;56), C=1 .
 
 % It's a mistake if the following six tarifs belongs to class 1 or class 2.
-:- event(T,C), tarif(TA), TA=(1;77;24;69;23;76), C=1 .
-:- event(T,C), tarif(TA), TA=(1;77;24;69;23;76), C=2 .
+:- event(T,TA,C), tarif(TA), TA=(1;77;24;69;23;76), C=1 .
+:- event(T,TA,C), tarif(TA), TA=(1;77;24;69;23;76), C=2 .
    
 
 % It's a mistake if the following two tarifs belongs to class 0.
-:- event(T,C), tarif(TA), TA=(55;17), C=0 .
+:- event(T,TA,C), tarif(TA), TA=(55;17), C=0 .
 
 % It's a mistake if the following tarif belongs to class 1.
-:- event(T,C), tarif(TA), TA=(68), C=1 .
+:- event(T,TA,C), tarif(TA), TA=(68), C=1 .
 
 % It's a mistake if the following six tarifs belongs to class 2.
-:- event(T,C), tarif(TA), TA=(73;9;71;4;13;14), C=2 .
+:- event(T,TA,C), tarif(TA), TA=(73;9;71;4;13;14), C=2 .
 '''
 
 # program ='''
@@ -195,7 +195,7 @@ Path(base_path+'1_epoch'+"/").mkdir(parents=True, exist_ok=True)
 
 
 print('Start training for 1 epoch...')
-NeurASPobj.learn(dataList=dataList, obsList=queryList, epoch=50, smPickle=None, bar=True, saveModelPath=saveModelPath)
+# NeurASPobj.learn(dataList=dataList, obsList=queryList, epoch=50, smPickle=None, bar=True, saveModelPath=saveModelPath)
 
 
 # ##Resume training
@@ -208,6 +208,18 @@ NeurASPobj.learn(dataList=dataList, obsList=queryList, epoch=50, smPickle=None, 
 # print(saveModelPath)
 # #load pytorch models
 # m.load_state_dict(saved_model['intellizenz_net'], strict=False)
+
+saved_model = torch.load("/Users/saravana/Documents/Work/Master-Thesis/reclamation-processing/Neuro-symbolic-AI/NeurASP/data/1_epoch/neurasp_models.pt")
+m.load_state_dict(saved_model['intellizenz_net'])
+optimizers['nasp_intellizenz'].load_state_dict(saved_model['resume']['optimizer_intellizenz'])    
+
+# {"intellizenz_net":  m.state_dict(), 
+#                         "resume": {
+#                             "optimizer_intellizenz":self.optimizers['nasp_intellizenz'].state_dict(),
+#                             "epoch":epochIdx+1
+#                         },
+    
+print("The program is: ",NeurASPobj.mvpp['program'])
 
 
 # #optimizers and schedulers
@@ -229,4 +241,3 @@ accuracyTrain, singleAccuracyTrain, _, _, _ = testNN(model=m, testLoader=train_l
 
 print(f'{accuracyTrain:0.2f}\t{accuracy:0.2f}')
 print('--- total time from beginning: %s seconds ---' % int(time.time() - start_time))
-

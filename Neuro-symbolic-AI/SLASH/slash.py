@@ -115,6 +115,7 @@ def compute_gradients_splitwise(networkOutput_split, query_batch_split, mvpp, n,
 
                 #get the network outputs for the current element in the batch and put it into the correct rule
                 dmvpp.parameters[ruleIdx] = [networkOutput_split[m][inf_type][t][bidx][i*n[m]+j] for (m, i, inf_type, t, j) in mvpp['networkProb'][ruleIdx]]
+                # print("All the network probabilities: ", dmvpp.parameters[ruleIdx])
                 if len(dmvpp.parameters[ruleIdx]) == 1:
                     dmvpp.parameters[ruleIdx] =  [dmvpp.parameters[ruleIdx][0][0],1-dmvpp.parameters[ruleIdx][0][0]]
 
@@ -152,6 +153,11 @@ def compute_gradients_splitwise(networkOutput_split, query_batch_split, mvpp, n,
                 print('Error: the method \'%s\' should be either \'exact\' or \'sampling\'', method)
             
             prob_q = dmvpp.sum_probability_for_stable_models(models)
+
+            # print("The models: ",models)
+            # print("The gradients: ",gradients)
+            # print("The probability that satisfy model: ",prob_q)
+            # print("=====================")
             
             model_batch_list_split.append(models)
             gradient_batch_list_split.append(gradients)
@@ -628,7 +634,6 @@ class SLASH(object):
                                         if t not in split_networkoutputs[s][m][o]:
                                             split_networkoutputs[s][m][o][t] =  {}
 
-
                 #split the batch of npp outputs among the amount of processes
                 for m in networkOutput:
                     for o in networkOutput[m]:
@@ -664,10 +669,11 @@ class SLASH(object):
                     model_batch_list = np.concatenate(model_batch_list_splits)
                 except ValueError as e:
                     print("fix later")
-                    #print(e)
-                    #for i in range(0, len(model_batch_list_splits)):
+                    # print(e)
+                    # for i in range(0, len(model_batch_list_splits)):
                     #    print("NUM:",i)
                     #    print(model_batch_list_splits[i])
+                       
                 
                 prob_q_batch_list = np.concatenate(prob_q_batch_list_splits)
 
@@ -695,7 +701,7 @@ class SLASH(object):
 
                 networkOutput_stacked = pad_3d_tensor(networkOutput_stacked, 'torch', len(query_batch),self.mvpp['networkPrRuleNum'],self.max_n)
                 # Since Torch not compiled with CUDA enabled in macOS; calculated using 'numpy'
-                # networkOutput_stacked = pad_3d_tensor(networkOutput_stacked, 'numpy', len(query_batch),self.mvpp['networkPrRuleNum'],self.max_n).to(device=self.device)
+                # networkOutput_stacked = pad_3d_tensor(networkOutput_stacked, 'numpy', len(query_batch),self.mvpp['networkPrRuleNum'],self.max_n)
 
                 #multiply every probability with its gradient 
                 result = torch.einsum("bjc, jbc -> bjc", gradient_batch_list, networkOutput_stacked)
@@ -998,10 +1004,11 @@ class SLASH(object):
             for m in self.networkOutputs:
                 for o in self.networkOutputs[m]: #iterate over all output types and forwarded the input t trough the network
                     for t in self.networkOutputs[m][o]:
-                        self.networkOutputs[m][o][t] = self.networkMapping[m].forward(
-                                                                                    data_batch[t].to(self.device),
-                                                                                    marg_idx=None,
-                                                                                    type=o)
+                        self.networkOutputs[m][o][t] = self.networkMapping[m].forward(data_batch[t].to(self.device))    
+                        # self.networkOutputs[m][o][t] = self.networkMapping[m].forward(
+                        #                                                             data_batch[t].to(self.device),
+                        #                                                             marg_idx=None,
+                        #                                                             type=o)
 
             # Step 2: turn the network outputs into a set of ASP facts            
             aspFactsList = []

@@ -365,19 +365,22 @@ features_v8 = [
     'venue_35%', 'venue_40%', 'venue_45%', 'venue_5%', 'venue_50%', 
     'venue_55%', 'venue_60%', 'venue_65%', 'venue_70%', 'venue_75%', 
     'venue_80%', 'venue_85%', 'venue_90%', 'venue_95%', 'venue_count', 
-    'venue_max', 'venue_mean', 'venue_min', 'venue_std', 
+    'venue_max', 'venue_mean', 'venue_min', 'venue_std'
+    , 
     
     'band_10%', 'band_15%', 'band_20%', 'band_25%', 'band_30%', 
     'band_35%', 'band_40%', 'band_45%', 'band_5%', 'band_50%', 
     'band_55%', 'band_60%', 'band_65%', 'band_70%', 'band_75%', 
     'band_80%', 'band_85%', 'band_90%', 'band_95%', 'band_count', 
-    'band_max', 'band_mean', 'band_min', 'band_std', 
+    'band_max', 'band_mean', 'band_min', 'band_std'
+    , 
 
     'promoter_10%', 'promoter_15%', 'promoter_20%', 'promoter_25%', 'promoter_30%', 
     'promoter_35%', 'promoter_40%', 'promoter_45%', 'promoter_5%', 'promoter_50%', 
     'promoter_55%', 'promoter_60%', 'promoter_65%', 'promoter_70%', 'promoter_75%', 
     'promoter_80%', 'promoter_85%', 'promoter_90%', 'promoter_95%', 'promoter_count', 
-    'promoter_max', 'promoter_mean', 'promoter_min', 'promoter_std',
+    'promoter_max', 'promoter_mean', 'promoter_min', 'promoter_std'
+    ,
     
     'vg_state', 'vg_datum_year', 
     'vg_datum_month', 'vg_datum_day_of_week', 'vg_datum_season', 'tarif_bez'

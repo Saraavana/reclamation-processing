@@ -175,10 +175,8 @@ class MVPP(object):
     def find_k_SM_under_query(self, query, k=3):
 
         program = self.pi_prime + query
-        # print('The Program is: ', program)
         clingo_control = clingo.Control(["--warn=none", str(int(k))])
         models = []
-
         try:
             clingo_control.add("base", [], program)
         except:
@@ -188,8 +186,7 @@ class MVPP(object):
         clingo_control.ground([("base", [])])
         clingo_control.solve([], lambda model: models.append(model.symbols(atoms=True)))
         models = [[str(atom) for atom in model] for model in models]
-
-        # print('Models: ',models)
+        # print("The models: ",models)
         return models
 
     # there might be some duplications in SMs when optimization option is used
@@ -253,6 +250,7 @@ class MVPP(object):
         program = self.pi_prime + query
         clingo_control = clingo.Control(['--warn=none', '--opt-mode=optN', '0'])
         models = []
+        
         try:
             clingo_control.add("base", [], program)
         except:
